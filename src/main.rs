@@ -28,15 +28,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut db = Db::new("localhost", 3306, "code_challenge", db_pass, "23_3_1")?;
 
-    db.insert_score(&Score::new("Charlie", "ls -l", 123.0))
-        .expect("error inserting score");
-    db.insert_score(&Score::new("Alice", "ls -l", 80.0))
-        .expect("error inserting score");
-    db.insert_score(&Score::new("Bob", "ls -l", 27.0))
-        .expect("error inserting score");
-    db.insert_score(&Score::new("Alice", "ls -l", 400.0))
-        .expect("error inserting score");
-
     let config = config::RunMode::from_args(&args)?;
     debug!("Config: {:?}", config);
 

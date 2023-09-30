@@ -1,4 +1,4 @@
-use log::debug;
+use log::{debug, info};
 
 #[derive(Debug)]
 pub enum RunMode {
@@ -9,6 +9,18 @@ pub enum RunMode {
 
 impl RunMode {
     pub fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
+        if args.contains(&String::from("-h")) {
+            info!("Usage: scoreboard_db [options]");
+            info!("-h: Print this help message");
+            info!("-n <name> -c <command>: Update the scoreboard with the result of running <command> as <name>");
+            info!("-p: Print the scoreboard");
+            info!("-a: Print all entries in the scoreboard");
+            info!("-l <limit>: Print the top <limit> entries in the scoreboard");
+            info!("-v <level>: Set the log level to <level>");
+            info!("-o <output>: Set the log output to <output>");
+            std::process::exit(0);
+        }
+
         let mode = if args.contains(&String::from("-n")) {
             RunMode::Update(WriteConfig::from_args(args)?)
         } else if args.contains(&String::from("-p")) {
