@@ -24,24 +24,21 @@ impl RunMode {
 
 #[derive(Debug)]
 pub struct ReadConfig {
-    pub sort: String,
+    pub all: bool,
     pub limit: Option<usize>,
 }
 
 impl ReadConfig {
     fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
-        let mut sort = String::from("time_ns");
+        let mut all = false;
         let mut limit = None;
 
         for (i, arg) in args.iter().enumerate() {
             match arg.as_str() {
-                "-s" => {
-                    sort = args
-                        .get(i + 1)
-                        .ok_or("-s must provide a string")?
-                        .to_string();
+                "-a" => {
+                    all = true;
                 }
-                "-n" => {
+                "-l" => {
                     limit = args
                         .get(i + 1)
                         .ok_or("-l must provide a string")?
@@ -52,7 +49,7 @@ impl ReadConfig {
             }
         }
 
-        let config = ReadConfig { sort, limit };
+        let config = ReadConfig { all, limit };
 
         debug!("Read Config: {:?}", config);
         Ok(config)
@@ -106,14 +103,9 @@ mod tests {
 
     #[test]
     fn test_read_config() {
-        let args = vec![
-            String::from("-s"),
-            String::from("sort"),
-            String::from("-n"),
-            String::from("1"),
-        ];
+        let args = vec![String::from("-a"), String::from("-l"), String::from("1")];
         let config = ReadConfig::from_args(&args).expect("Error parsing args");
-        assert_eq!(config.sort, "sort");
+        assert!(config.all);
         assert_eq!(config.limit, Some(1));
     }
 

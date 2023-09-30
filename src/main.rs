@@ -6,10 +6,10 @@ use log::{debug, info, warn};
 use std::process::Command;
 use std::time::Instant;
 
-const TEST_SAMPLES: usize = 100;
+const TEST_SAMPLES: usize = 100_000;
 
 enum TestResult {
-    Success(u32),
+    Success(Score),
     Fail(String),
 }
 
@@ -21,12 +21,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(pass) => pass,
         None => {
             return Err(
-                "This program needs to be compiled with the $DB_PASS env variable set".into(),
+                "This program needs to be compiled with the $DB_PASSWORD env variable set".into(),
             )
         }
     };
 
     let mut db = Db::new("localhost", 3306, "code_challenge", db_pass, "23_3_1")?;
+
+    db.insert_score(&Score::new("Charlie", "ls -l", 123.0))
+        .expect("error inserting score");
+    db.insert_score(&Score::new("Alice", "ls -l", 80.0))
+        .expect("error inserting score");
+    db.insert_score(&Score::new("Bob", "ls -l", 27.0))
+        .expect("error inserting score");
+    db.insert_score(&Score::new("Alice", "ls -l", 400.0))
+        .expect("error inserting score");
 
     let config = config::RunMode::from_args(&args)?;
     debug!("Config: {:?}", config);
@@ -49,8 +58,13 @@ fn read_scores(
     config: config::ReadConfig,
     db: &mut Db,
 ) -> Result<Vec<Score>, Box<dyn std::error::Error>> {
-    let scores: Vec<Score> = db.get_scores(config.limit, Some(config.sort))?;
-    println!("Scores: {:?}", scores);
+    let scores: Vec<Score> = db.get_scores(config.limit, config.all)?;
+
+    println!("--==Scoreboard==--");
+    for (i, score) in scores.iter().enumerate() {
+        println!("{}. {}", i + 1, score);
+    }
+    println!("--==/==--");
     Ok(scores)
 }
 
@@ -58,6 +72,7 @@ fn run_sim(db: &mut Db, name: &str, command: &str) -> Result<(), Box<dyn std::er
     const PATH: &str = "test.json";
     let gen = generator::Generator::new(TEST_SAMPLES);
     gen.save_to_file(PATH)?;
+    let mut score = Score::new(name, command, 0.0);
 
     // run the test
     let ex = format!("{} {}", command, PATH);
@@ -70,9 +85,10 @@ fn run_sim(db: &mut Db, name: &str, command: &str) -> Result<(), Box<dyn std::er
         .map_err(|e| format!("Failed to run your program: {}", e))?;
 
     let elapsed = start.elapsed().as_nanos();
-    let result = if elapsed > u32::MAX as u128 {
+    let result = if elapsed > u64::MAX as u128 {
         TestResult::Fail(String::from("Your program is way too slow"))
     } else {
+        score.time_ns = elapsed as f64;
         match output.status.success() {
             false => TestResult::Fail(format!(
                 "Your program exited with a non-zero status code: {}",
@@ -84,7 +100,7 @@ fn run_sim(db: &mut Db, name: &str, command: &str) -> Result<(), Box<dyn std::er
                     false => TestResult::Fail(String::from(
                         "Your program did not produce the correct result",
                     )),
-                    true => TestResult::Success(elapsed as u32),
+                    true => TestResult::Success(score),
                 }
             }
         }
@@ -94,9 +110,9 @@ fn run_sim(db: &mut Db, name: &str, command: &str) -> Result<(), Box<dyn std::er
         TestResult::Fail(msg) => {
             warn!("Test failed: {}", msg);
         }
-        TestResult::Success(elapsed) => {
-            db.insert_score(name, command, elapsed)?;
-            let elapsed = elapsed as f32 / 1000.0;
+        TestResult::Success(score) => {
+            db.insert_score(&score)?;
+            let elapsed = score.time_ns / 1000.0;
             info!(
                 "Well done {name}, you ran {command} in {elapsed}us",
                 name = name,

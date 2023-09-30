@@ -55,7 +55,7 @@ fn get_output(args: &[String]) -> DebugOut {
             }
         }
     }
-    DebugOut::Syslog
+    DebugOut::Stdout
 }
 
 pub fn init_debug(args: &[String]) {

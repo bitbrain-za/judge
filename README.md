@@ -9,15 +9,11 @@
 To get the current scores
 
 - `-p` REQUIRED Prints the score board (use `-n` to limit the lines printed)
-- `-n` OPTIONAL Number of entries to print (if not provided the entire table is returned)
-- `-s <COLUMN>` OPTIONAL Sort by the given column
-    - name
-    - command
-    - time_ns
+- `-l` OPTIONAL Number of entries to print (if not provided the entire table is returned)
 
 To add a score
 
-- `-u <NAME>` REQUIRED The name you want displayed on the scoreboard
+- `-n <NAME>` REQUIRED The name you want displayed on the scoreboard
 - `-c <COMMAND>` REQUIRED The command that was run (if you have parameters, include quotation marks)
 
 To wipe the DB:
