@@ -56,4 +56,10 @@ impl Generator {
         file.write_all(self.to_string().as_bytes())?;
         Ok(())
     }
+
+    pub fn check_answer(&self, data: &str) -> Result<bool, Box<dyn std::error::Error>> {
+        let result: Vec<i32> = serde_json::from_str(data).expect("JSON was not well-formatted");
+
+        Ok(self.answer == result)
+    }
 }
