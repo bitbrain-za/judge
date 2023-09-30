@@ -1,10 +1,13 @@
 mod config;
-use scoreboard_db::{Db, Score};
+use reqwest::header::CONTENT_TYPE;
+use scoreboard_db::{Db, NiceTime, Score};
 mod debug_config;
 mod generator;
 use log::{debug, info, warn};
 use std::process::Command;
 use std::time::Instant;
+mod card;
+use card::Message;
 
 const TEST_SAMPLES: usize = 100_000;
 
@@ -33,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match config {
         config::RunMode::Update(config) => {
-            run_sim(&mut db, &config.name, &config.command)?;
+            run_sim(&mut db, &config.name, &config.command, config.publish)?;
         }
         config::RunMode::Read(config) => {
             read_scores(config, &mut db)?;
@@ -59,7 +62,12 @@ fn read_scores(
     Ok(scores)
 }
 
-fn run_sim(db: &mut Db, name: &str, command: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn run_sim(
+    db: &mut Db,
+    name: &str,
+    command: &str,
+    publish: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     const PATH: &str = "test.json";
     let gen = generator::Generator::new(TEST_SAMPLES);
     gen.save_to_file(PATH)?;
@@ -103,16 +111,49 @@ fn run_sim(db: &mut Db, name: &str, command: &str) -> Result<(), Box<dyn std::er
         }
         TestResult::Success(score) => {
             db.insert_score(&score)?;
-            let elapsed = score.time_ns / 1000.0;
+
             info!(
-                "Well done {name}, you ran {command} in {elapsed}us",
+                "Well done {name}, you ran {command} in {elapsed}",
                 name = name,
                 command = command,
-                elapsed = elapsed
+                elapsed = NiceTime::new(score.time_ns)
             );
+            if publish {
+                let _ = send_card(db);
+            }
         }
     }
 
     std::fs::remove_file(PATH).expect("could not remove file");
+    Ok(())
+}
+
+fn send_card(db: &mut Db) -> Result<(), Box<dyn std::error::Error>> {
+    let score = Score::new("Dummy", "test", 123456789.0);
+
+    let scores: Vec<Score> = db.get_scores(Some(3), false)?;
+    let card = Message::new(score, scores);
+    let body = format!("{}", card);
+
+    let hook = match option_env!("WEBHOOK") {
+        Some(pass) => pass,
+        None => {
+            return Err(
+                "This program needs to be compiled with the $WEBHOOK env variable set".into(),
+            )
+        }
+    };
+
+    let client = reqwest::blocking::Client::new();
+    let req = client
+        .post(hook)
+        .header(CONTENT_TYPE, "application/json")
+        .body(body);
+
+    debug!("Request: {:?}", req);
+
+    let res = req.send()?;
+    debug!("Response: {:?}", res);
+    debug!("Response: {:?}", res.text()?);
     Ok(())
 }

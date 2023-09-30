@@ -72,12 +72,14 @@ impl ReadConfig {
 pub struct WriteConfig {
     pub name: String,
     pub command: String,
+    pub publish: bool,
 }
 
 impl WriteConfig {
     fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
         let mut name: Option<String> = None;
         let mut command: Option<String> = None;
+        let mut publish = true;
 
         for (i, arg) in args.iter().enumerate() {
             match arg.as_str() {
@@ -95,6 +97,9 @@ impl WriteConfig {
                             .to_string(),
                     );
                 }
+                "-q" => {
+                    publish = false;
+                }
                 _ => {}
             }
         }
@@ -102,6 +107,7 @@ impl WriteConfig {
         let config = WriteConfig {
             name: name.ok_or("-n must be provided")?,
             command: command.ok_or("-c must be provided")?,
+            publish,
         };
 
         debug!("Write Config: {:?}", config);
