@@ -1,0 +1,16 @@
+[package]
+name = "judge_23_3_1"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+mysql = "24.0.0"
+log = "0.4.17"
+simple_logger = "4.2.0"
+systemd-journal-logger = "1.0.0"
+rand ="0.8.4"
+serde_json = "1.0.107"
+serde = { version = "1.0.188", features = ["derive"] }
+scoreboard_db = { path = "../scoreboard_db" }
