@@ -20,7 +20,7 @@ pub struct Content {
 }
 
 impl Message {
-    pub fn new(score: Score, leaders: Vec<Score>) -> Self {
+    pub fn new(score: &Score, leaders: &[Score]) -> Self {
         let card = AdaptiveCard::new(score, leaders);
         let content = Content {
             content_type: "application/vnd.microsoft.card.adaptive".to_string(),
@@ -88,7 +88,7 @@ struct Column {
 }
 
 impl AdaptiveCard {
-    pub fn new(score: Score, leaders: Vec<Score>) -> Self {
+    pub fn new(score: &Score, leaders: &[Score]) -> Self {
         let card = AdaptiveCard::default();
         let now: String = Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true);
 

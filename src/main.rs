@@ -119,7 +119,7 @@ fn run_sim(
                 elapsed = NiceTime::new(score.time_ns)
             );
             if publish {
-                let _ = send_card(db);
+                let _ = send_card(db, &score);
             }
         }
     }
@@ -128,11 +128,9 @@ fn run_sim(
     Ok(())
 }
 
-fn send_card(db: &mut Db) -> Result<(), Box<dyn std::error::Error>> {
-    let score = Score::new("Dummy", "test", 123456789.0);
-
+fn send_card(db: &mut Db, score: &Score) -> Result<(), Box<dyn std::error::Error>> {
     let scores: Vec<Score> = db.get_scores(Some(3), false)?;
-    let card = Message::new(score, scores);
+    let card = Message::new(score, &scores);
     let body = format!("{}", card);
 
     let hook = match option_env!("WEBHOOK") {
