@@ -12,6 +12,7 @@ impl RunMode {
         info!("Usage: judge_2331 [options]");
         info!("-h: Print this help message");
         info!("-c <command>: Make an attemp with your program supplied as <command>");
+        info!("-n <name>: [DEPRECATED] the name to put on the scoreboard");
         info!("-p: Print the scoreboard");
         info!("-q: Run in stealth mode (don't publish to the channel)");
         info!("-a: Print all entries in the scoreboard");

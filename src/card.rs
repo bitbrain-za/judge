@@ -1,8 +1,10 @@
-use std::fmt::Display;
-
 use chrono::prelude::*;
+use log::debug;
+use reqwest::header::CONTENT_TYPE;
+use scoreboard_db::Db;
 use scoreboard_db::Score;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 #[derive(Serialize, Deserialize)]
 pub struct Message {
@@ -32,6 +34,34 @@ impl Message {
             message_type: "message".to_string(),
             attachments,
         }
+    }
+
+    pub fn send_card(db: &mut Db, score: &Score) -> Result<(), Box<dyn std::error::Error>> {
+        let scores: Vec<Score> = db.get_scores(Some(3), false)?;
+        let card = Message::new(score, &scores);
+        let body = format!("{}", card);
+
+        let hook = match option_env!("WEBHOOK") {
+            Some(pass) => pass,
+            None => {
+                return Err(
+                    "This program needs to be compiled with the $WEBHOOK env variable set".into(),
+                )
+            }
+        };
+
+        let client = reqwest::blocking::Client::new();
+        let req = client
+            .post(hook)
+            .header(CONTENT_TYPE, "application/json")
+            .body(body);
+
+        debug!("Request: {:?}", req);
+
+        let res = req.send()?;
+        debug!("Response: {:?}", res);
+        debug!("Response: {:?}", res.text()?);
+        Ok(())
     }
 }
 
