@@ -48,6 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match config {
         config::RunMode::Update(config) => {
+            info!("Welcome to the code challenge {}!", whoami::realname());
             match run_sim(&mut db, &config.name, &config.command, config.publish) {
                 Ok(_) => {}
                 Err(e) => {
