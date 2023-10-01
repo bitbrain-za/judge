@@ -58,7 +58,9 @@ pub fn run_sim(
             warn!("Test failed: {}", msg);
         }
         TestResult::Success(score) => {
-            db.insert_score(&score)?;
+            if !config.test_mode {
+                db.insert_score(&score)?;
+            }
 
             info!(
                 "Well done {name}, you ran {command} in {elapsed}",

@@ -15,6 +15,7 @@ impl RunMode {
         info!("-n <name>: [DEPRECATED] the name to put on the scoreboard");
         info!("-p: Print the scoreboard");
         info!("-q: Run in stealth mode (don't publish to the channel)");
+        info!("-t: Run in test mode. No results will be published to the scoreboard or channel");
         info!("-a: Print all entries in the scoreboard");
         info!("-l <limit>: Print the top <limit> entries in the scoreboard");
         info!("-v <level>: Set the log level to <level>");
@@ -88,6 +89,7 @@ pub struct WriteConfig {
     pub name: String,
     pub command: String,
     pub publish: bool,
+    pub test_mode: bool,
 }
 
 impl WriteConfig {
@@ -95,6 +97,7 @@ impl WriteConfig {
         let mut name: Option<String> = Some(whoami::realname());
         let mut command: Option<String> = None;
         let mut publish = true;
+        let mut test_mode = false;
 
         for (i, arg) in args.iter().enumerate() {
             match arg.as_str() {
@@ -116,6 +119,9 @@ impl WriteConfig {
                             .to_string(),
                     );
                 }
+                "-t" => {
+                    test_mode = true;
+                }
                 "-q" => {
                     publish = false;
                 }
@@ -123,10 +129,15 @@ impl WriteConfig {
             }
         }
 
+        if test_mode {
+            publish = false;
+        }
+
         let config = WriteConfig {
             name: name.ok_or("-n must be provided")?,
             command: command.ok_or("-c must be provided")?,
             publish,
+            test_mode,
         };
 
         debug!("Write Config: {:?}", config);
