@@ -8,17 +8,21 @@ pub enum RunMode {
 }
 
 impl RunMode {
+    fn print_help() {
+        info!("Usage: judge_2331 [options]");
+        info!("-h: Print this help message");
+        info!("-n <name> -c <command>: Update the scoreboard with the result of running <command> as <name>");
+        info!("-p: Print the scoreboard");
+        info!("-q: Run in stealth mode (don't publish to the channel)");
+        info!("-a: Print all entries in the scoreboard");
+        info!("-l <limit>: Print the top <limit> entries in the scoreboard");
+        info!("-v <level>: Set the log level to <level>");
+        info!("-o <output>: Set the log output to <output>");
+    }
+
     pub fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
         if args.contains(&String::from("-h")) {
-            info!("Usage: judge_2331 [options]");
-            info!("-h: Print this help message");
-            info!("-n <name> -c <command>: Update the scoreboard with the result of running <command> as <name>");
-            info!("-p: Print the scoreboard");
-            info!("-q: Run in stealth mode (don't publish to the channel)");
-            info!("-a: Print all entries in the scoreboard");
-            info!("-l <limit>: Print the top <limit> entries in the scoreboard");
-            info!("-v <level>: Set the log level to <level>");
-            info!("-o <output>: Set the log output to <output>");
+            Self::print_help();
             std::process::exit(0);
         }
 
@@ -27,17 +31,24 @@ impl RunMode {
         } else if args.contains(&String::from("-p")) {
             RunMode::Read(ReadConfig::from_args(args)?)
         } else if args.contains(&String::from("-w")) {
-            RunMode::Wipe
+            let pass = match option_env!("WIPE_PASSWORD") {
+                Some(pass) => pass,
+                None => {
+                    return Err(
+                        "This version was not compiled with the ability to wipe the DB".into(),
+                    )
+                }
+            };
+            match args.contains(&String::from(pass)) {
+                true => RunMode::Wipe,
+                false => {
+                    error!("You need to provide the correct password to wipe the DB");
+                    return Err("Incorrect password".into());
+                }
+            }
         } else {
             error!("You need to provide arguments");
-            info!("Usage: judge_2331 [options]");
-            info!("-h: Print this help message");
-            info!("-n <name> -c <command>: Update the scoreboard with the result of running <command> as <name>");
-            info!("-p: Print the scoreboard");
-            info!("-a: Print all entries in the scoreboard");
-            info!("-l <limit>: Print the top <limit> entries in the scoreboard");
-            info!("-v <level>: Set the log level to <level>");
-            info!("-o <output>: Set the log output to <output>");
+            Self::print_help();
             return Err("No mode provided".into());
         };
         Ok(mode)
