@@ -3,7 +3,7 @@ use reqwest::header::CONTENT_TYPE;
 use scoreboard_db::{Db, NiceTime, Score};
 mod debug_config;
 mod generator;
-use log::{debug, info, warn};
+use log::{debug, error, info, warn};
 use std::process::Command;
 use std::time::Instant;
 mod card;
@@ -29,21 +29,44 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let mut db = Db::new("localhost", 3306, "code_challenge", db_pass, "23_3_1")?;
+    let mut db = match Db::new("localhost", 3306, "code_challenge", db_pass, "23_3_1") {
+        Ok(db) => db,
+        Err(e) => {
+            error!("Failed to connect to database: {}", e);
+            return Ok(());
+        }
+    };
 
-    let config = config::RunMode::from_args(&args)?;
+    let config = match config::RunMode::from_args(&args) {
+        Ok(config) => config,
+        Err(e) => {
+            error!("Failed to parse arguments: {}", e);
+            return Ok(());
+        }
+    };
     debug!("Config: {:?}", config);
 
     match config {
         config::RunMode::Update(config) => {
-            run_sim(&mut db, &config.name, &config.command, config.publish)?;
+            match run_sim(&mut db, &config.name, &config.command, config.publish) {
+                Ok(_) => {}
+                Err(e) => {
+                    warn!("Failed to run your program: {}", e);
+                }
+            }
         }
-        config::RunMode::Read(config) => {
-            read_scores(config, &mut db)?;
-        }
-        config::RunMode::Wipe => {
-            db.clear_table()?;
-        }
+        config::RunMode::Read(config) => match read_scores(config, &mut db) {
+            Ok(_) => {}
+            Err(e) => {
+                warn!("Failed to read scores: {}", e);
+            }
+        },
+        config::RunMode::Wipe => match db.clear_table() {
+            Ok(_) => {}
+            Err(e) => {
+                warn!("Failed to wipe scores: {}", e);
+            }
+        },
     }
     Ok(())
 }
