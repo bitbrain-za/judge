@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     match config {
         config::RunMode::Update(config) => {
             info!("Welcome to the code challenge {}!", whoami::realname());
-            match run::run_sim(&mut db, &config, TEST_SAMPLES) {
+            match run::run(&mut db, &config, TEST_SAMPLES) {
                 Ok(_) => {}
                 Err(e) => {
                     warn!("Failed to run your program: {}", e);

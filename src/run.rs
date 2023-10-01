@@ -1,8 +1,10 @@
 use crate::card::Message;
 use crate::config::WriteConfig;
 use crate::generator;
-use log::{info, warn};
+use log::{debug, info, warn};
 use scoreboard_db::{Db, NiceTime, Score};
+use sha256::try_digest;
+use std::path::Path;
 use std::process::Command;
 use std::time::Instant;
 
@@ -11,20 +13,36 @@ enum TestResult {
     Fail(String),
 }
 
-pub fn run_sim(
+const PATH: &str = "test.json";
+
+/* wrap run_sim so we cleanup after ourselves */
+pub fn run(
     db: &mut Db,
     config: &WriteConfig,
     count: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    const PATH: &str = "test.json";
+    let result = run_sim(db, config, count);
+    std::fs::remove_file(PATH).expect("could not remove file");
+    result
+}
+
+fn run_sim(
+    db: &mut Db,
+    config: &WriteConfig,
+    count: usize,
+) -> Result<(), Box<dyn std::error::Error>> {
+    info!("setting up to run {}", config.command);
     let gen = generator::Generator::new(count);
     gen.save_to_file(PATH)?;
-    let mut score = Score::new(&config.name, &config.command, 0.0);
+    let hash = get_hash(&config.command)?;
+    debug!("hash: {}", hash);
+    let mut score = Score::new(&config.name, &config.command, 0.0, hash);
 
     // run the test
     let ex = format!("{} {}", config.command, PATH);
     let mut uut = Command::new("sh");
     uut.arg("-c").arg(ex);
+    info!("Running {}", config.command);
 
     let start = Instant::now();
     let output = uut
@@ -74,6 +92,17 @@ pub fn run_sim(
         }
     }
 
-    std::fs::remove_file(PATH).expect("could not remove file");
     Ok(())
+}
+
+fn get_hash(path: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let parts = path.split(' ');
+    let path = parts.last().ok_or("Failed to parse path")?;
+    // let path = path.replace(&['(', ')', ',', '\"', '.', ';', ':', '/'][..], "");
+    debug!("program is hopefully: {}", path);
+
+    match try_digest(Path::new(path)) {
+        Ok(hash) => Ok(hash),
+        Err(e) => Err(format!("Failed to load file: {}", e).into()),
+    }
 }
