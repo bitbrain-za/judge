@@ -12,7 +12,7 @@ use std::time::Instant;
 enum TestResult {
     Success(Score),
     Fail(String),
-    Stolen(String, String),
+    Stolen(Score, Score),
 }
 
 const PATH: &str = "test.json";
@@ -96,11 +96,17 @@ fn run_sim(
         }
         TestResult::Stolen(thief, victim) => {
             info!(
+                "Well done {name}, you ran {command} in {elapsed}",
+                name = config.name,
+                command = config.command,
+                elapsed = NiceTime::new(thief.time_ns)
+            );
+            info!(
                 "Unfortunately this solution was already submitted by {}",
-                victim
+                victim.name
             );
             if !config.test_mode {
-                let _ = Message::send_copy_message(db, &thief, &victim);
+                let _ = Message::send_copy_message(db, &thief.name, &victim.name);
             }
         }
     }
@@ -128,7 +134,7 @@ fn check_for_plagiarism(
         let scores: Vec<Score> = db.get_scores(None, true)?;
         for score in scores {
             if score.hash == new_score.hash && score.name != new_score.name {
-                return Ok(TestResult::Stolen(new_score.name.clone(), score.name));
+                return Ok(TestResult::Stolen(new_score.clone(), score));
             }
         }
     }
