@@ -8,9 +8,11 @@ use std::path::Path;
 use std::process::Command;
 use std::time::Instant;
 
+#[derive(Clone)]
 enum TestResult {
     Success(Score),
     Fail(String),
+    Stolen(String, String),
 }
 
 const PATH: &str = "test.json";
@@ -71,6 +73,8 @@ fn run_sim(
         }
     };
 
+    let result = check_for_plagiarism(result, db)?;
+
     match result {
         TestResult::Fail(msg) => {
             warn!("Test failed: {}", msg);
@@ -90,6 +94,15 @@ fn run_sim(
                 let _ = Message::send_card(db, &score);
             }
         }
+        TestResult::Stolen(thief, victim) => {
+            info!(
+                "Unfortunately this solution was already submitted by {}",
+                victim
+            );
+            if !config.test_mode {
+                let _ = Message::send_copy_message(db, &thief, &victim);
+            }
+        }
     }
 
     Ok(())
@@ -99,10 +112,25 @@ fn get_hash(path: &str) -> Result<String, Box<dyn std::error::Error>> {
     let parts = path.split(' ');
     let path = parts.last().ok_or("Failed to parse path")?;
     // let path = path.replace(&['(', ')', ',', '\"', '.', ';', ':', '/'][..], "");
-    debug!("program is hopefully: {}", path);
+    debug!("Is this the program: {}?", path);
 
     match try_digest(Path::new(path)) {
         Ok(hash) => Ok(hash),
         Err(e) => Err(format!("Failed to load file: {}", e).into()),
     }
+}
+
+fn check_for_plagiarism(
+    result: TestResult,
+    db: &mut Db,
+) -> Result<TestResult, Box<dyn std::error::Error>> {
+    if let TestResult::Success(ref new_score) = result {
+        let scores: Vec<Score> = db.get_scores(None, true)?;
+        for score in scores {
+            if score.hash == new_score.hash && score.name != new_score.name {
+                return Ok(TestResult::Stolen(new_score.name.clone(), score.name));
+            }
+        }
+    }
+    Ok(result)
 }

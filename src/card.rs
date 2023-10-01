@@ -39,8 +39,31 @@ impl Message {
     pub fn send_card(db: &mut Db, score: &Score) -> Result<(), Box<dyn std::error::Error>> {
         let scores: Vec<Score> = db.get_scores(Some(3), false)?;
         let card = Message::new(score, &scores);
-        let body = format!("{}", card);
+        card.send()
+    }
 
+    pub fn send_copy_message(
+        db: &mut Db,
+        t: &str,
+        v: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let scores: Vec<Score> = db.get_scores(Some(3), false)?;
+        let card = AdaptiveCard::new_cheat(t, v, &scores);
+        let content = Content {
+            content_type: "application/vnd.microsoft.card.adaptive".to_string(),
+            content: card,
+        };
+
+        let attachments = vec![content];
+        let card = Message {
+            message_type: "message".to_string(),
+            attachments,
+        };
+        card.send()
+    }
+
+    fn send(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let body = format!("{}", self);
         let hook = match option_env!("WEBHOOK") {
             Some(pass) => pass,
             None => {
@@ -127,14 +150,55 @@ impl AdaptiveCard {
         let s = s.replace("{DATE}", &now);
 
         let mut body = format!("{}", score);
-        body.push_str("{n}{n}");
-        body.push_str("Leaderboard:{n}{n}");
-        for (i, leader) in leaders.iter().enumerate() {
-            body.push_str(&format!("{}. {}{{n}}", i + 1, leader));
-        }
+        Self::append_score(&mut body, leaders);
 
         let s = s.replace("{BODY}", &body);
         serde_json::from_str(&s).unwrap()
+    }
+
+    pub fn new_cheat(thief: &str, victim: &str, leaders: &[Score]) -> Self {
+        let card = AdaptiveCard::default();
+        let now: String = Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true);
+
+        let s: String = serde_json::to_string(&card).unwrap();
+        let s = s.replace("{PLAYER}", thief);
+        let s = s.replace("{DATE}", &now);
+
+        let mut body = format!(
+            "{}, tried to submit code already submitted by {}. The leaderboard remains the same...",
+            thief, victim
+        );
+        Self::append_score(&mut body, leaders);
+
+        let s = s.replace("{BODY}", &body);
+        serde_json::from_str(&s).unwrap()
+    }
+
+    pub fn filter_unique_players(input: &[Score], limit: Option<usize>) -> Vec<Score> {
+        let limit = limit.unwrap_or(input.len());
+        let mut scores: Vec<Score> = Vec::new();
+        let mut seen = Vec::new();
+        for score in input {
+            if !seen.contains(&score.name) {
+                seen.push(score.name.clone());
+                scores.push(score.clone());
+                if scores.len() >= limit {
+                    break;
+                }
+            }
+        }
+        scores
+    }
+
+    fn append_score(body: &mut String, scores: &[Score]) {
+        body.push_str("{n}{n}");
+        body.push_str("Leaderboard:{n}{n}");
+
+        let scores = Self::filter_unique_players(scores, Some(3));
+
+        for (i, leader) in scores.iter().enumerate() {
+            body.push_str(&format!("{}. {}{{n}}", i + 1, leader));
+        }
     }
 }
 
