@@ -14,6 +14,7 @@ impl RunMode {
             info!("-h: Print this help message");
             info!("-n <name> -c <command>: Update the scoreboard with the result of running <command> as <name>");
             info!("-p: Print the scoreboard");
+            info!("-q: Run in stealth mode (don't publish to the channel)");
             info!("-a: Print all entries in the scoreboard");
             info!("-l <limit>: Print the top <limit> entries in the scoreboard");
             info!("-v <level>: Set the log level to <level>");
