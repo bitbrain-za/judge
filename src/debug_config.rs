@@ -103,7 +103,7 @@ mod tests {
     #[test]
     fn test_get_output_default() {
         let args = vec![String::from("program")];
-        assert_eq!(get_output(&args), DebugOut::Syslog);
+        assert_eq!(get_output(&args), DebugOut::Stdout);
     }
 
     #[test]
@@ -113,6 +113,6 @@ mod tests {
             String::from("-o"),
             String::from("bad"),
         ];
-        assert_eq!(get_output(&args), DebugOut::Syslog);
+        assert_eq!(get_output(&args), DebugOut::Stdout);
     }
 }

@@ -1,5 +1,6 @@
 mod g2331;
 pub use g2331::G2331;
+pub mod challenges;
 
 pub trait Generator {
     fn new(count: usize) -> Self;
