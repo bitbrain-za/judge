@@ -82,7 +82,7 @@ fn run_sim(
                 db.insert_score(&score)?;
             }
 
-            info!(
+            println!(
                 "Well done {name}, you ran {command} in {elapsed}",
                 name = config.name,
                 command = config.command,
@@ -93,13 +93,13 @@ fn run_sim(
             }
         }
         TestResult::Stolen(thief, victim) => {
-            info!(
+            println!(
                 "Well done {name}, you ran {command} in {elapsed}",
                 name = config.name,
                 command = config.command,
                 elapsed = NiceTime::new(thief.time_ns)
             );
-            info!(
+            println!(
                 "Unfortunately this solution was already submitted by {}",
                 victim.name
             );

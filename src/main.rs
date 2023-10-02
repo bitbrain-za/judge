@@ -14,6 +14,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<String>>();
     debug_config::init_debug(&args);
 
+    info!("Firing up judge_2331 {}", env!("CARGO_PKG_VERSION"));
     let db_pass = match option_env!("DB_PASSWORD") {
         Some(pass) => pass,
         None => {
@@ -42,7 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match config {
         config::RunMode::Update(config) => {
-            info!("Welcome to the code challenge {}!", whoami::realname());
+            println!("Welcome to the code challenge {}!", whoami::realname());
             info!("setting up to run {}", config.command);
             let mut generator = generator::G2331::new(TEST_SAMPLES);
             match run::run(&mut db, &config, &mut generator) {

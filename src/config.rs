@@ -1,5 +1,5 @@
 use crate::generator::challenges::{Challenge, Challenges};
-use log::{debug, error, info};
+use log::{debug, error};
 
 #[derive(Debug)]
 pub enum RunMode {
@@ -10,21 +10,21 @@ pub enum RunMode {
 
 impl RunMode {
     fn print_help() {
-        info!("Usage: judge_2331 [options]");
-        info!("-h: Print this help message");
-        info!("-C <challenge>: Which challenge are you competing in. '?' to print all available challenges");
-        info!("-c <command>: Make an attemp with your program supplied as <command>");
-        info!("-n <name>: [DEPRECATED] the name to put on the scoreboard");
-        info!("-L <language>: OPTIONAL the language you are using.");
-        info!("-p: Print the scoreboard");
-        info!("-q: Run in stealth mode (don't publish to the channel)");
-        info!("-t: Run in test mode. No results will be published to the scoreboard or channel");
-        info!("-a: Print all entries in the scoreboard");
-        info!("-l <limit>: Print the top <limit> entries in the scoreboard");
-        info!("-v <level>: Set the log level to <level>");
-        info!("-o <output>: Set the log output to <output>");
-        info!("-w Wipe the scoreboard");
-        info!("--version Print the version");
+        println!("Usage: judge_2331 [options]");
+        println!("-h: Print this help message");
+        println!("-C <challenge>: Which challenge are you competing in. '?' to print all available challenges");
+        println!("-c <command>: Make an attemp with your program supplied as <command>");
+        println!("-n <name>: [DEPRECATED] the name to put on the scoreboard");
+        println!("-L <language>: OPTIONAL the language you are using.");
+        println!("-p: Print the scoreboard");
+        println!("-q: Run in stealth mode (don't publish to the channel)");
+        println!("-t: Run in test mode. No results will be published to the scoreboard or channel");
+        println!("-a: Print all entries in the scoreboard");
+        println!("-l <limit>: Print the top <limit> entries in the scoreboard");
+        println!("-v <level>: Set the log level to <level>");
+        println!("-o <output>: Set the log output to <output>");
+        println!("-w Wipe the scoreboard");
+        println!("--version Print the version");
     }
 
     pub fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
@@ -40,7 +40,7 @@ impl RunMode {
         }
 
         if args.contains(&String::from("--version")) {
-            info!("judge_2331 {}", env!("CARGO_PKG_VERSION"));
+            println!("judge_2331 {}", env!("CARGO_PKG_VERSION"));
             std::process::exit(0);
         }
 
@@ -95,16 +95,16 @@ impl ReadConfig {
                         .ok_or("-C must provide a string")?
                         .to_string();
                     if c == "?" {
-                        info!("Available challenges:");
-                        info!("{}", challenges);
+                        println!("Available challenges:");
+                        println!("{}", challenges);
                         std::process::exit(0);
                     }
                     challenge = match challenges.get_challenge(&c) {
                         Some(c) => c,
                         None => {
                             error!("Challenge {} not found", c);
-                            info!("Available challenges:");
-                            info!("{}", challenges);
+                            println!("Available challenges:");
+                            println!("{}", challenges);
                             std::process::exit(1);
                         }
                     };
@@ -176,16 +176,16 @@ impl WriteConfig {
                         .ok_or("-C must provide a string")?
                         .to_string();
                     if c == "?" {
-                        info!("Available challenges:");
-                        info!("{}", challenges);
+                        println!("Available challenges:");
+                        println!("{}", challenges);
                         std::process::exit(0);
                     }
                     challenge = match challenges.get_challenge(&c) {
                         Some(c) => c,
                         None => {
                             error!("Challenge {} not found", c);
-                            info!("Available challenges:");
-                            info!("{}", challenges);
+                            println!("Available challenges:");
+                            println!("{}", challenges);
                             std::process::exit(1);
                         }
                     };

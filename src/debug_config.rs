@@ -42,7 +42,7 @@ fn get_level(args: &[String]) -> LevelFilter {
             }
         }
     }
-    LevelFilter::Info
+    LevelFilter::Warn
 }
 
 fn get_output(args: &[String]) -> DebugOut {
