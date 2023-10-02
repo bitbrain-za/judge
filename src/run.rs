@@ -36,7 +36,7 @@ fn run_sim(
     generator.save_to_file(PATH)?;
     let hash = get_hash(&config.command)?;
     debug!("hash: {}", hash);
-    let mut score = Score::new(&config.name, &config.command, 0.0, hash);
+    let mut score = Score::new(&config.name, &config.command, 0.0, hash, &config.language);
 
     // run the test
     let ex = format!("{} {}", config.command, PATH);

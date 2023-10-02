@@ -131,7 +131,7 @@ pub struct WriteConfig {
     pub publish: bool,
     pub test_mode: bool,
     pub challenge: Challenge,
-    pub language: Option<String>,
+    pub language: String,
 }
 
 impl WriteConfig {
@@ -142,7 +142,7 @@ impl WriteConfig {
         let mut test_mode = false;
         let challenges = Challenges::new();
         let mut challenge = challenges.get_challenge("2331").expect("FIX ME!");
-        let mut language = None;
+        let mut language: Option<String> = None;
 
         for (i, arg) in args.iter().enumerate() {
             match arg.as_str() {
@@ -211,7 +211,7 @@ impl WriteConfig {
             publish,
             test_mode,
             challenge: challenge.clone(),
-            language,
+            language: language.ok_or("-L must be provided")?,
         };
 
         debug!("Write Config: {:?}", config);
