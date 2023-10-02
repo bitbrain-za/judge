@@ -6,6 +6,7 @@ use log::{debug, error, info, warn};
 mod card;
 mod read;
 mod run;
+use generator::Generator;
 
 const TEST_SAMPLES: usize = 100_000;
 
@@ -42,7 +43,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     match config {
         config::RunMode::Update(config) => {
             info!("Welcome to the code challenge {}!", whoami::realname());
-            match run::run(&mut db, &config, TEST_SAMPLES) {
+            info!("setting up to run {}", config.command);
+            let mut generator = generator::G2331::new(TEST_SAMPLES);
+            match run::run(&mut db, &config, &mut generator) {
                 Ok(_) => {}
                 Err(e) => {
                     warn!("Failed to run your program: {}", e);

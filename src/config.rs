@@ -94,7 +94,7 @@ pub struct WriteConfig {
 
 impl WriteConfig {
     fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
-        let mut name: Option<String> = Some(whoami::realname());
+        let mut name: Option<String> = Some(whoami::username());
         let mut command: Option<String> = None;
         let mut publish = true;
         let mut test_mode = false;

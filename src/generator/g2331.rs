@@ -1,32 +1,38 @@
 use std::fmt::Display;
 
+use crate::generator::Generator;
 use rand::seq::SliceRandom;
 use rand::{thread_rng, Rng};
 
-pub struct Generator {
+pub struct G2331 {
     pub count: usize,
     pub test_cases: Vec<Vec<i32>>,
     pub answer: Vec<i32>,
 }
 
-impl Display for Generator {
+impl Display for G2331 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let json = serde_json::to_string(&self.test_cases).unwrap();
         write!(f, "{}", json)
     }
 }
 
-impl Generator {
-    pub fn new(count: usize) -> Self {
+impl Generator for G2331 {
+    fn new(count: usize) -> Self {
         let mut s = Self {
             count,
             test_cases: Vec::new(),
             answer: Vec::new(),
         };
-        s.generate();
+        s.regenerate();
         s
     }
-    pub fn generate(&mut self) -> Vec<Vec<i32>> {
+
+    fn get_test_cases(&self) -> String {
+        serde_json::to_string(&self.test_cases).unwrap()
+    }
+
+    fn regenerate(&mut self) {
         let mut rng = thread_rng();
         self.test_cases = Vec::new();
 
@@ -45,11 +51,9 @@ impl Generator {
 
             self.test_cases.push(test_case);
         }
-
-        self.test_cases.clone()
     }
 
-    pub fn save_to_file(&self, filename: &str) -> std::io::Result<()> {
+    fn save_to_file(&self, filename: &str) -> std::io::Result<()> {
         use std::fs::File;
         use std::io::prelude::*;
         let mut file = File::create(filename)?;
@@ -57,7 +61,7 @@ impl Generator {
         Ok(())
     }
 
-    pub fn check_answer(&self, data: &str) -> Result<bool, Box<dyn std::error::Error>> {
+    fn check_answer(&self, data: &str) -> Result<bool, Box<dyn std::error::Error>> {
         let result: Vec<i32> = serde_json::from_str(data).expect("JSON was not well-formatted");
 
         Ok(self.answer == result)

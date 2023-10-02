@@ -1,6 +1,6 @@
 use crate::card::Message;
 use crate::config::WriteConfig;
-use crate::generator;
+use crate::generator::Generator;
 use log::{debug, info, warn};
 use scoreboard_db::{Db, NiceTime, Score};
 use sha256::try_digest;
@@ -21,9 +21,9 @@ const PATH: &str = "test.json";
 pub fn run(
     db: &mut Db,
     config: &WriteConfig,
-    count: usize,
+    generator: &mut impl Generator,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let result = run_sim(db, config, count);
+    let result = run_sim(db, config, generator);
     std::fs::remove_file(PATH).expect("could not remove file");
     result
 }
@@ -31,11 +31,9 @@ pub fn run(
 fn run_sim(
     db: &mut Db,
     config: &WriteConfig,
-    count: usize,
+    generator: &mut impl Generator,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    info!("setting up to run {}", config.command);
-    let gen = generator::Generator::new(count);
-    gen.save_to_file(PATH)?;
+    generator.save_to_file(PATH)?;
     let hash = get_hash(&config.command)?;
     debug!("hash: {}", hash);
     let mut score = Score::new(&config.name, &config.command, 0.0, hash);
@@ -63,7 +61,7 @@ fn run_sim(
             )),
             true => {
                 let out = String::from_utf8(output.stdout)?;
-                match gen.check_answer(&out)? {
+                match generator.check_answer(&out)? {
                     false => TestResult::Fail(String::from(
                         "Your program did not produce the correct result",
                     )),

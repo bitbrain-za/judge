@@ -37,7 +37,7 @@ impl Message {
     }
 
     pub fn send_card(db: &mut Db, score: &Score) -> Result<(), Box<dyn std::error::Error>> {
-        let scores: Vec<Score> = db.get_scores(Some(3), false)?;
+        let scores: Vec<Score> = db.get_scores(None, true)?;
         let card = Message::new(score, &scores);
         card.send()
     }
@@ -194,7 +194,7 @@ impl AdaptiveCard {
         body.push_str("{n}{n}");
         body.push_str("Leaderboard:{n}{n}");
 
-        let scores = Self::filter_unique_players(scores, Some(3));
+        let scores = Self::filter_unique_players(scores, Some(5));
 
         for (i, leader) in scores.iter().enumerate() {
             body.push_str(&format!("{}. {}{{n}}", i + 1, leader));
