@@ -18,9 +18,10 @@ impl RunMode {
         println!("Usage: judge_2331 [options]");
         println!("-h: Print this help message");
         println!("--version Print the version");
+        println!("-C? Print the available challenges");
         println!();
         println!("Take The Test");
-        println!("-C <challenge>: OPTIONAL (for now) Which challenge are you competing in. '?' to print all available challenges");
+        println!("-C <challenge>: OPTIONAL (for now) Which challenge are you competing in.");
         println!("-c <command>: REQUIRED Make an attemp with your program supplied as <command>");
         println!("-L <language>: REQUIRED the language you are using.");
         println!("-q: OPTIONAL Run in stealth mode (don't publish to the channel)");
@@ -28,6 +29,7 @@ impl RunMode {
         println!("-n <name>: [DEPRECATED] the name to put on the scoreboard");
         println!();
         println!("View The Scoreboard");
+        println!("-C <challenge>: FUTURE Which challenge are you looking for.");
         println!("-p: Print the scoreboard");
         println!("-l <limit>: Print the top <limit> entries in the scoreboard");
         println!();
@@ -58,6 +60,12 @@ impl RunMode {
 
         if args.contains(&String::from("--version")) {
             println!("judge_2331 {}", env!("CARGO_PKG_VERSION"));
+            std::process::exit(0);
+        }
+
+        if args.contains(&String::from("-C?")) {
+            println!("Available challenges:");
+            println!("{}", Challenges::new());
             std::process::exit(0);
         }
 
@@ -205,6 +213,26 @@ impl WriteConfig {
 
         for (i, arg) in args.iter().enumerate() {
             match arg.as_str() {
+                "-C" => {
+                    let c = args
+                        .get(i + 1)
+                        .ok_or("-C must provide a string")?
+                        .to_string();
+                    if c == "?" {
+                        println!("Available challenges:");
+                        println!("{}", challenges);
+                        std::process::exit(0);
+                    }
+                    challenge = match challenges.get_challenge(&c) {
+                        Some(c) => c,
+                        None => {
+                            error!("Challenge {} not found", c);
+                            println!("Available challenges:");
+                            println!("{}", challenges);
+                            std::process::exit(1);
+                        }
+                    };
+                }
                 "-n" => {
                     let user = whoami::username();
                     if user != "root" {
@@ -231,26 +259,7 @@ impl WriteConfig {
                 "-q" => {
                     publish = false;
                 }
-                "-C" => {
-                    let c = args
-                        .get(i + 1)
-                        .ok_or("-C must provide a string")?
-                        .to_string();
-                    if c == "?" {
-                        println!("Available challenges:");
-                        println!("{}", challenges);
-                        std::process::exit(0);
-                    }
-                    challenge = match challenges.get_challenge(&c) {
-                        Some(c) => c,
-                        None => {
-                            error!("Challenge {} not found", c);
-                            println!("Available challenges:");
-                            println!("{}", challenges);
-                            std::process::exit(1);
-                        }
-                    };
-                }
+
                 "-L" => {
                     language = Some(
                         args.get(i + 1)

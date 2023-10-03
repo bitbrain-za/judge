@@ -51,3 +51,10 @@ To wipe the DB:
 - `-o <OUTPUT>` OPTIONAL Defaults to `syslog`
     - syslog
     - stdout
+
+
+# Changelog
+
+[X] adds filters for scoreboard
+[ ] adds challenge flag
+[ ] adds challenge readme printout
