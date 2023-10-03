@@ -17,19 +17,31 @@ impl RunMode {
     fn print_help() {
         println!("Usage: judge_2331 [options]");
         println!("-h: Print this help message");
-        println!("-C <challenge>: Which challenge are you competing in. '?' to print all available challenges");
-        println!("-c <command>: Make an attemp with your program supplied as <command>");
+        println!("--version Print the version");
+        println!();
+        println!("Take The Test");
+        println!("-C <challenge>: OPTIONAL (for now) Which challenge are you competing in. '?' to print all available challenges");
+        println!("-c <command>: REQUIRED Make an attemp with your program supplied as <command>");
+        println!("-L <language>: REQUIRED the language you are using.");
+        println!("-q: OPTIONAL Run in stealth mode (don't publish to the channel)");
+        println!("-t: OPTIONAL Run in test mode. No results will be published to the scoreboard or channel");
         println!("-n <name>: [DEPRECATED] the name to put on the scoreboard");
-        println!("-L <language>: OPTIONAL the language you are using.");
+        println!();
+        println!("View The Scoreboard");
         println!("-p: Print the scoreboard");
-        println!("-q: Run in stealth mode (don't publish to the channel)");
-        println!("-t: Run in test mode. No results will be published to the scoreboard or channel");
-        println!("-a: Print all entries in the scoreboard");
         println!("-l <limit>: Print the top <limit> entries in the scoreboard");
+        println!();
+        println!("Scoreboard filters\nThese will be applied in the order they're supplied\nMultiple instances of the same filter type can be added");
+        println!("--sort <column>: Sort the scoreboard by (time, name, language, binary)");
+        println!("--player <name>: Filter the scoreboard by <name>");
+        println!("--language <lang>: Filter the scoreboard by <lang>");
+        println!("--binary <bin>: Filter the scoreboard by <bin>");
+        println!("--unique <field>: Only print unique entries for (players, languages, binaries)");
+        println!();
+        println!("Debugging");
         println!("-v <level>: Set the log level to <level>");
         println!("-o <output>: Set the log output to <output>");
         println!("-w Wipe the scoreboard");
-        println!("--version Print the version");
     }
 
     pub fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
@@ -75,15 +87,6 @@ pub struct ReadConfig {
 }
 
 impl ReadConfig {
-    /*
-        - `--unique players` OPTIONAL Only show the first score per a player
-        - `--unique binaries` OPTIONAL Only show the first score per a binary
-        - `--unique language` OPTIONAL Only show the first score per a binary
-        - `--player <playername>` OPTIONAL only show scores for the given player (can be used multiple times to select multiple players)
-        - `--language <language>` OPTIONAL only show scores for the given language (can be used multiple times to select more than one language)
-        - `--binary <binary_name>` OPTIONAL only show scores for the given binary (can be used multiple times to select more than one binary)
-        - `--sort <player/binary/language/time>` OPTIONAL sort the list by the givn column (default is time)
-    */
     fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
         let challenges = Challenges::new();
         let mut challenge = challenges.get_challenge("2331").expect("FIX ME!");
