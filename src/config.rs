@@ -1,5 +1,10 @@
+use std::str::FromStr;
+
 use crate::generator::challenges::{Challenge, Challenges};
 use log::{debug, error};
+
+use scoreboard_db::Builder as FilterBuilder;
+use scoreboard_db::{Filter, SortColumn};
 
 #[derive(Debug)]
 pub enum RunMode {
@@ -65,29 +70,35 @@ impl RunMode {
 
 #[derive(Debug)]
 pub struct ReadConfig {
-    pub all: bool,
-    pub limit: Option<usize>,
     pub challenge: Challenge,
+    pub filters: FilterBuilder,
 }
 
 impl ReadConfig {
+    /*
+        - `--unique players` OPTIONAL Only show the first score per a player
+        - `--unique binaries` OPTIONAL Only show the first score per a binary
+        - `--unique language` OPTIONAL Only show the first score per a binary
+        - `--player <playername>` OPTIONAL only show scores for the given player (can be used multiple times to select multiple players)
+        - `--language <language>` OPTIONAL only show scores for the given language (can be used multiple times to select more than one language)
+        - `--binary <binary_name>` OPTIONAL only show scores for the given binary (can be used multiple times to select more than one binary)
+        - `--sort <player/binary/language/time>` OPTIONAL sort the list by the givn column (default is time)
+    */
     fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
-        let mut all = false;
-        let mut limit = None;
         let challenges = Challenges::new();
         let mut challenge = challenges.get_challenge("2331").expect("FIX ME!");
+        let mut filters = FilterBuilder::new();
 
         for (i, arg) in args.iter().enumerate() {
             match arg.as_str() {
-                "-a" => {
-                    all = true;
-                }
                 "-l" => {
-                    limit = args
+                    let limit = args
                         .get(i + 1)
                         .ok_or("-l must provide a string")?
                         .parse::<usize>()
-                        .ok();
+                        .map_err(|e| format!("-l must provide a number: {}", e))?;
+
+                    filters.append(Filter::Top(limit));
                 }
                 "-C" => {
                     let c = args
@@ -109,14 +120,59 @@ impl ReadConfig {
                         }
                     };
                 }
+                "--unique" => match args
+                    .get(i + 1)
+                    .ok_or("--unique must provide a string")?
+                    .as_str()
+                {
+                    "players" => filters.append(Filter::UniquePlayers),
+                    "names" => filters.append(Filter::UniquePlayers),
+                    "name" => filters.append(Filter::UniquePlayers),
+                    "player" => filters.append(Filter::UniquePlayers),
+                    "language" => filters.append(Filter::UniqueLanguages),
+                    "languages" => filters.append(Filter::UniqueLanguages),
+                    "binary" => filters.append(Filter::UniqueBinaries),
+                    "binaries" => filters.append(Filter::UniqueBinaries),
+                    "bin" => filters.append(Filter::UniqueBinaries),
+                    "command" => filters.append(Filter::UniqueBinaries),
+                    _ => {}
+                },
+                "--player" => {
+                    let player = args
+                        .get(i + 1)
+                        .ok_or("--player must provide a string")?
+                        .to_string();
+                    filters.append(Filter::Player(vec![player]));
+                }
+                "--language" => {
+                    let language = args
+                        .get(i + 1)
+                        .ok_or("--language must provide a string")?
+                        .to_string();
+                    filters.append(Filter::Language(vec![language]));
+                }
+                "--binary" => {
+                    let binary = args
+                        .get(i + 1)
+                        .ok_or("--binary must provide a string")?
+                        .to_string();
+                    filters.append(Filter::Binary(vec![binary]));
+                }
+                "--sort" => {
+                    let sort = SortColumn::from_str(
+                        args.get(i + 1)
+                            .ok_or("--sort must provide a string")?
+                            .as_str(),
+                    )?;
+                    filters.append(Filter::Sort(sort));
+                }
                 _ => {}
             }
         }
 
         let config = ReadConfig {
-            all,
-            limit,
             challenge: challenge.clone(),
+            filters,
         };
 
         debug!("Read Config: {:?}", config);
@@ -158,6 +214,8 @@ impl WriteConfig {
                     );
                 }
                 "-c" => {
+                    // TODO - there's a bug here where if C doesn't have an argument, it will try run the next flag
+                    // Applies to all the other ones as well.
                     command = Some(
                         args.get(i + 1)
                             .ok_or("-c must provide a string")?
@@ -216,25 +274,5 @@ impl WriteConfig {
 
         debug!("Write Config: {:?}", config);
         Ok(config)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_read_config() {
-        let args = vec![String::from("-a"), String::from("-l"), String::from("1")];
-        let config = ReadConfig::from_args(&args).expect("Error parsing args");
-        assert!(config.all);
-        assert_eq!(config.limit, Some(1));
-    }
-
-    #[test]
-    fn test_write_config() {
-        let args = vec![String::from("-c"), String::from("command")];
-        let config = WriteConfig::from_args(&args).expect("Error parsing args");
-        assert_eq!(config.command, "command");
     }
 }

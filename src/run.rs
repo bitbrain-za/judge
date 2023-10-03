@@ -129,7 +129,7 @@ fn check_for_plagiarism(
     db: &mut Db,
 ) -> Result<TestResult, Box<dyn std::error::Error>> {
     if let TestResult::Success(ref new_score) = result {
-        let scores: Vec<Score> = db.get_scores(None, true)?;
+        let scores: Vec<Score> = db.get_scores(None)?;
         for score in scores {
             if score.hash == new_score.hash && score.name != new_score.name {
                 return Ok(TestResult::Stolen(new_score.clone(), score));

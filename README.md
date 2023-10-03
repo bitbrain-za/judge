@@ -17,20 +17,29 @@ Features:
 
 ## usage
 
-To get the current scores
+### Scoreboard
 
 - `-p` REQUIRED Prints the score board (use `-n` to limit the lines printed)
 - `-l` OPTIONAL Number of entries to print (if not provided the entire table is returned)
-- `-a` OPTIONAL List all entries (without this only unique entries are selected)
+- `--unique players` OPTIONAL Only show the first score per a player
+- `--unique binaries` OPTIONAL Only show the first score per a binary
+- `--unique language` OPTIONAL Only show the first score per a binary
+- `--player <playername>` OPTIONAL only show scores for the given player (can be used multiple times to select multiple players)
+- `--language <language>` OPTIONAL only show scores for the given language (can be used multiple times to select more than one language)
+- `--binary <binary_name>` OPTIONAL only show scores for the given binary (can be used multiple times to select more than one binary)
+- `--sort <player/binary/language/time>` OPTIONAL sort the list by the givn column (default is time)
 
-To add a score
+**_Filters:_**  The filters will be aplied in the order they are provided.
+
+### Running a testS
 
 - `-c <COMMAND>` REQUIRED The command that was run (if you have parameters, include quotation marks)
+- `-L <language>` REQUIRED The language you wrote your binary in
 - `-t` OPTIONAL Test-mode - Results will not be saved to the DB
 - `-q` OPTIONAL Quiet Mode - No messages published to the teams channel
 
 To wipe the DB:
-- `-w` Wipes the DB
+- `-w` Wipes the DB (requires root)
 
 ### Debug Options
 - `-v <LEVEL>` OPTIONAL Defaults to `info`

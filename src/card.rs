@@ -1,8 +1,8 @@
 use chrono::prelude::*;
 use log::debug;
 use reqwest::header::CONTENT_TYPE;
-use scoreboard_db::Db;
-use scoreboard_db::Score;
+use scoreboard_db::Builder as FilterBuilder;
+use scoreboard_db::{Db, Filter, Score, ScoreBoard, SortColumn};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -22,6 +22,7 @@ pub struct Content {
 }
 
 impl Message {
+    const MAX_SCORES: Option<usize> = Some(1000);
     pub fn new(score: &Score, leaders: &[Score]) -> Self {
         let card = AdaptiveCard::new(score, leaders);
         let content = Content {
@@ -37,7 +38,16 @@ impl Message {
     }
 
     pub fn send_card(db: &mut Db, score: &Score) -> Result<(), Box<dyn std::error::Error>> {
-        let scores: Vec<Score> = db.get_scores(None, true)?;
+        let scores: Vec<Score> = db.get_scores(Self::MAX_SCORES)?;
+
+        let filters = FilterBuilder::new()
+            .add_filter(Filter::UniquePlayers)
+            .add_filter(Filter::Sort(SortColumn::Time))
+            .add_filter(Filter::Top(5));
+        let scores = ScoreBoard::new(scores.clone())
+            .filter(filters.clone())
+            .scores();
+
         let card = Message::new(score, &scores);
         card.send()
     }
@@ -47,7 +57,17 @@ impl Message {
         t: &str,
         v: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let scores: Vec<Score> = db.get_scores(Some(3), false)?;
+        let scores: Vec<Score> = db.get_scores(Self::MAX_SCORES)?;
+
+        let filters = FilterBuilder::new()
+            .add_filter(Filter::UniquePlayers)
+            .add_filter(Filter::Sort(SortColumn::Time))
+            .add_filter(Filter::Top(5));
+
+        let scores = ScoreBoard::new(scores.clone())
+            .filter(filters.clone())
+            .scores();
+
         let card = AdaptiveCard::new_cheat(t, v, &scores);
         let content = Content {
             content_type: "application/vnd.microsoft.card.adaptive".to_string(),

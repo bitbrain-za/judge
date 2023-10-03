@@ -54,7 +54,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         config::RunMode::Read(config) => match read::read_scores(config, &mut db) {
-            Ok(_) => {}
+            Ok(reader) => {
+                println!("{}", reader);
+            }
             Err(e) => {
                 warn!("Failed to read scores: {}", e);
             }
