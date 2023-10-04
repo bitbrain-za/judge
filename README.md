@@ -55,6 +55,8 @@ To wipe the DB:
 
 ## Changelog
 
-[X] adds filters for scoreboard
-[ ] adds challenge flag
-[ ] adds challenge readme printout
+ 1.1.0
+  - adds filters for scoreboard
+  - formats the output better
+  - adds challenge flag
+  - adds challenge readme printout

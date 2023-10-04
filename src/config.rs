@@ -10,7 +10,7 @@ use scoreboard_db::{Filter, SortColumn};
 pub enum RunMode {
     Update(WriteConfig),
     Read(ReadConfig),
-    Wipe,
+    Wipe(String),
 }
 
 impl RunMode {
@@ -68,7 +68,13 @@ impl RunMode {
                 error!("You need to be root to wipe the DB");
                 return Err("Not root".into());
             }
-            RunMode::Wipe
+            let index = args.iter().position(|r| r == "-w").unwrap();
+            let table = args
+                .get(index + 1)
+                .ok_or("-w must provide a table name")?
+                .to_string();
+
+            RunMode::Wipe(table)
         } else {
             error!("You need to provide arguments");
             Self::print_help();

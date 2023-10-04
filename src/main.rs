@@ -24,14 +24,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let mut db = match Db::new("localhost", 3306, "code_challenge", db_pass, "23_3_1") {
-        Ok(db) => db,
-        Err(e) => {
-            error!("Failed to connect to database: {}", e);
-            return Ok(());
-        }
-    };
-
     let config = match config::RunMode::from_args(&args) {
         Ok(config) => config,
         Err(e) => {
@@ -43,6 +35,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match config {
         config::RunMode::Update(config) => {
+            debug!(
+                "Connecting to database code_challenge.{}",
+                config.challenge.table
+            );
+            let mut db = match Db::new(
+                "localhost",
+                3306,
+                "code_challenge",
+                db_pass,
+                &config.challenge.table,
+            ) {
+                Ok(db) => db,
+                Err(e) => {
+                    error!("Failed to connect to database: {}", e);
+                    return Ok(());
+                }
+            };
             println!("Welcome to the code challenge {}!", whoami::realname());
             info!("setting up to run {}", config.command);
             let mut generator = generator::G2331::new(TEST_SAMPLES);
@@ -53,20 +62,49 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-        config::RunMode::Read(config) => match read::read_scores(config, &mut db) {
-            Ok(reader) => {
-                println!("{}", reader);
+        config::RunMode::Read(config) => {
+            debug!(
+                "Connecting to database code_challenge.{}",
+                config.challenge.table
+            );
+            let mut db = match Db::new(
+                "localhost",
+                3306,
+                "code_challenge",
+                db_pass,
+                &config.challenge.table,
+            ) {
+                Ok(db) => db,
+                Err(e) => {
+                    error!("Failed to connect to database: {}", e);
+                    return Ok(());
+                }
+            };
+            match read::read_scores(config, &mut db) {
+                Ok(reader) => {
+                    println!("{}", reader);
+                }
+                Err(e) => {
+                    warn!("Failed to read scores: {}", e);
+                }
             }
-            Err(e) => {
-                warn!("Failed to read scores: {}", e);
+        }
+        config::RunMode::Wipe(table) => {
+            debug!("Connecting to database code_challenge.{}", table);
+            let mut db = match Db::new("localhost", 3306, "code_challenge", db_pass, &table) {
+                Ok(db) => db,
+                Err(e) => {
+                    error!("Failed to connect to database: {}", e);
+                    return Ok(());
+                }
+            };
+            match db.clear_table() {
+                Ok(_) => {}
+                Err(e) => {
+                    warn!("Failed to wipe scores: {}", e);
+                }
             }
-        },
-        config::RunMode::Wipe => match db.clear_table() {
-            Ok(_) => {}
-            Err(e) => {
-                warn!("Failed to wipe scores: {}", e);
-            }
-        },
+        }
     }
     Ok(())
 }
