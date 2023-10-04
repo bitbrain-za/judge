@@ -1,23 +1,23 @@
-# Judge 23.1.1
+# Welcome to the Judge!
 
-The aim is to have an application that will score code kata challenges.
+This purpose of this application is to mediate your submissions to the code challenge.
+It will run your submission and record the results, adding them to the scoreboard. 
+It can also let you view the scoreboard in a variety of different ways.
 
-Features:
+## Features
  - Generates a random data set
  - Invokes the challenger program, passes the data set and records execution time
  - Updates a MYSQL database with the player name and results.
  - Posts the results to a teams channel
 
-
 ## Dependencies
-
  - libssl-dev
  - [mySql](https://linuxhint.com/installing_mysql_workbench_ubuntu/)
 
 
-## usage
+## Usage
 
-### Scoreboard
+### 1. Scoreboard
 
 - `-p` REQUIRED Prints the score board (use `-n` to limit the lines printed)
 - `-l` OPTIONAL Number of entries to print (if not provided the entire table is returned)
@@ -31,7 +31,7 @@ Features:
 
 **_Filters:_**  The filters will be aplied in the order they are provided.
 
-### Running a testS
+### 2. Running a test
 
 - `-c <COMMAND>` REQUIRED The command that was run (if you have parameters, include quotation marks)
 - `-L <language>` REQUIRED The language you wrote your binary in
@@ -41,7 +41,7 @@ Features:
 To wipe the DB:
 - `-w` Wipes the DB (requires root)
 
-### Debug Options
+### 3. Debug Options
 - `-v <LEVEL>` OPTIONAL Defaults to `info`
     - error
     - info
@@ -53,7 +53,7 @@ To wipe the DB:
     - stdout
 
 
-# Changelog
+## Changelog
 
 [X] adds filters for scoreboard
 [ ] adds challenge flag

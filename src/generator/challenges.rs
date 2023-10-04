@@ -8,6 +8,12 @@ pub struct Challenge {
     pub table: String,
 }
 
+impl Challenge {
+    pub fn print(&self) {
+        termimad::print_text(include_str!("2331.md"));
+    }
+}
+
 pub struct Challenges {
     pub challenges: Vec<Challenge>,
 }
@@ -17,7 +23,7 @@ impl Challenges {
         let c2331 = Challenge {
             name: String::from("Find the odd one out"),
             command: String::from("2331"),
-            doc_path: String::from("doc/23_3_1.md"),
+            doc_path: String::from("/home/philip/code_challenges/judge_23_3_1/README.md"),
             table: String::from("23_3_1"),
         };
 
