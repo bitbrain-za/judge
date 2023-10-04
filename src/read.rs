@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use crate::config;
 use scoreboard_db::Builder as FilterBuilder;
-use scoreboard_db::{Db, Score, ScoreBoard};
+use scoreboard_db::{Db, NiceTime, Score, ScoreBoard};
 
 pub struct Reader {
     pub scores: Vec<Score>,
@@ -41,7 +41,7 @@ impl Reader {
                 "{}| {place} | {player} | {time} | {language} | {program} |\n",
                 s,
                 player = score.name,
-                time = score.time_ns,
+                time = NiceTime::new(score.time_ns),
                 language = score.language,
                 program = score.command,
                 place = i + 1,

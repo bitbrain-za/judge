@@ -250,7 +250,8 @@ impl WriteConfig {
                     language = Some(
                         args.get(i + 1)
                             .ok_or("-L must provide a string")?
-                            .to_string(),
+                            .to_string()
+                            .to_lowercase(),
                     );
                 }
                 _ => {}
