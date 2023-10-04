@@ -82,7 +82,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             match read::read_scores(config, &mut db) {
                 Ok(reader) => {
-                    println!("{}", reader);
+                    // println!("{}", reader);
+                    if let Err(e) = reader.pretty_print() {
+                        error!("Failed to print scores: {}", e);
+                    }
                 }
                 Err(e) => {
                     warn!("Failed to read scores: {}", e);

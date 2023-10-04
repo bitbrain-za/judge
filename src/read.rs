@@ -30,6 +30,28 @@ impl Reader {
             .filter(self.filters.clone())
             .scores())
     }
+
+    pub fn pretty_print(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let mut s = String::from("# Scoreboard\n");
+        s = format!("{}| # | Player |  Time | Language | Program |\n", s);
+        s = format!("{}| --- | --- | --- | ------- |\n", s);
+        let scores = self.scores()?;
+        for (i, score) in scores.iter().enumerate() {
+            s = format!(
+                "{}| {place} | {player} | {time} | {language} | {program} |\n",
+                s,
+                player = score.name,
+                time = score.time_ns,
+                language = score.language,
+                program = score.command,
+                place = i + 1,
+            );
+        }
+
+        termimad::print_text(&s);
+
+        Ok(())
+    }
 }
 
 impl Display for Reader {
