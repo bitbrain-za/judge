@@ -1,7 +1,8 @@
 use crate::card::Message;
 use crate::config::WriteConfig;
 use crate::generator::Generator;
-use log::{debug, info, warn};
+use cliclack::spinner;
+use log::{debug, warn};
 use scoreboard_db::{Db, NiceTime, Score};
 use sha256::try_digest;
 use std::path::Path;
@@ -33,6 +34,8 @@ fn run_sim(
     config: &WriteConfig,
     generator: &mut impl Generator,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    let mut spinner = spinner();
+    spinner.start(format!("Setting up to run {}", config.command));
     generator.save_to_file(PATH)?;
     let hash = get_hash(&config.command)?;
     debug!("hash: {}", hash);
@@ -42,12 +45,13 @@ fn run_sim(
     let ex = format!("{} {}", config.command, PATH);
     let mut uut = Command::new("sh");
     uut.arg("-c").arg(ex);
-    info!("Running {}", config.command);
 
     let start = Instant::now();
+    spinner.start(format!("Running {}", config.command));
     let output = uut
         .output()
         .map_err(|e| format!("Failed to run your program: {}", e))?;
+    spinner.stop("Done running");
 
     let elapsed = start.elapsed().as_nanos();
     let result = if elapsed > u64::MAX as u128 {

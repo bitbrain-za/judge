@@ -10,7 +10,7 @@ use generator::Generator;
 mod menu;
 
 const ATTEMP_SAMPLES: usize = 100_000;
-const TEST_SAMPLES: usize = 500;
+const TEST_SAMPLES: usize = 100_000;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<String>>();
@@ -40,6 +40,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match config {
         config::RunMode::Update(config) => {
+            let mut spinner = cliclack::spinner();
+            println!("Welcome to the code challenge {}!", whoami::realname());
             debug!(
                 "Connecting to database code_challenge.{}",
                 config.challenge.table
@@ -57,13 +59,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     return Ok(());
                 }
             };
-            println!("Welcome to the code challenge {}!", whoami::realname());
             info!("setting up to run {}", config.command);
+            spinner.start("Generating challenge data");
             // TODO Move this inside the challenge itself (incl the number of cases)
             let mut generator = match config.test_mode {
                 true => generator::G2331::new(TEST_SAMPLES),
                 false => generator::G2331::new(ATTEMP_SAMPLES),
             };
+            spinner.stop("Done generating challenge data");
             match run::run(&mut db, &config, &mut generator) {
                 Ok(_) => {}
                 Err(e) => {
