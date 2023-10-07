@@ -11,7 +11,6 @@ pub enum RunMode {
     Update(WriteConfig),
     Read(ReadConfig),
     Wipe(String),
-    Other,
 }
 
 impl RunMode {
@@ -191,6 +190,21 @@ pub struct WriteConfig {
     pub test_mode: bool,
     pub challenge: Challenge,
     pub language: String,
+}
+
+impl Default for WriteConfig {
+    fn default() -> Self {
+        let challenges = Challenges::new();
+        let challenge = challenges.get_challenge("2331").expect("FIX ME!");
+        WriteConfig {
+            name: whoami::username(),
+            command: String::new(),
+            publish: false,
+            test_mode: false,
+            challenge: challenge.clone(),
+            language: String::new(),
+        }
+    }
 }
 
 impl WriteConfig {

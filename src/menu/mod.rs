@@ -1,3 +1,5 @@
+mod attempt;
+mod common;
 mod docs;
 mod menu;
 

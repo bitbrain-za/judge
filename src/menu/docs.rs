@@ -1,8 +1,8 @@
 use crate::config::RunMode;
-use crate::generator::challenges::{Challenge, Challenges};
-use cliclack::{input, intro, outro};
+use crate::menu::common::challenge_selection;
+use cliclack::{intro, outro};
 
-pub fn run() -> Result<RunMode, Box<dyn std::error::Error>> {
+pub fn run() -> Result<Option<RunMode>, Box<dyn std::error::Error>> {
     intro("Help")?;
 
     let mode = cliclack::select("Please select one")
@@ -17,34 +17,12 @@ pub fn run() -> Result<RunMode, Box<dyn std::error::Error>> {
             termimad::print_text(include_str!("../../README.md"));
         }
         "challenges" => {
-            challenge_selection()?;
+            let challenge = challenge_selection()?;
+            outro(format!("You selected {}", challenge.command))?;
+            challenge.print();
         }
         _ => {}
     }
 
-    Ok(RunMode::Other)
-}
-
-fn challenge_selection() -> Result<RunMode, Box<dyn std::error::Error>> {
-    print!("\x1B[2J\x1B[1;1H");
-    let mut choice = cliclack::select("Please select one").initial_value("submit");
-
-    let mut challenges = Challenges::new();
-
-    for challenge in challenges.challenges.iter_mut() {
-        choice = choice.item(&challenge.command, &challenge.name, "");
-    }
-    let command = choice.interact()?;
-
-    let challenges = Challenges::new();
-    let challenge = match challenges.get_challenge(command) {
-        Some(c) => c,
-        None => {
-            println!("Invalid challenge");
-            return Ok(RunMode::Other);
-        }
-    };
-    challenge.print();
-
-    Ok(RunMode::Other)
+    Ok(None)
 }
