@@ -3,6 +3,10 @@ use std::fmt::Display;
 use crate::generator::Generator;
 use rand::seq::SliceRandom;
 use rand::{thread_rng, Rng};
+use std::process::Command;
+use std::time::Instant;
+
+use super::TestResult;
 
 pub struct G2331 {
     pub count: usize,
@@ -17,8 +21,10 @@ impl Display for G2331 {
     }
 }
 
-impl Generator for G2331 {
-    fn new(count: usize) -> Self {
+const PATH: &str = "test.json";
+
+impl G2331 {
+    pub fn new(count: usize) -> Self {
         let mut s = Self {
             count,
             test_cases: Vec::new(),
@@ -27,7 +33,9 @@ impl Generator for G2331 {
         s.regenerate();
         s
     }
+}
 
+impl Generator for G2331 {
     fn get_test_cases(&self) -> String {
         serde_json::to_string(&self.test_cases).unwrap()
     }
@@ -63,7 +71,57 @@ impl Generator for G2331 {
 
     fn check_answer(&self, data: &str) -> Result<bool, Box<dyn std::error::Error>> {
         let result: Vec<i32> = serde_json::from_str(data).expect("JSON was not well-formatted");
-
         Ok(self.answer == result)
+    }
+
+    fn setup(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        self.save_to_file(PATH)?;
+        Ok(())
+    }
+
+    fn run(&self, test: TestResult) -> Result<TestResult, Box<dyn std::error::Error>> {
+        if let TestResult::Success(score) = test {
+            let mut score = score;
+            // run the test
+            let ex = format!("{} {}", score.command, PATH);
+            let mut uut = Command::new("sh");
+            uut.arg("-c").arg(ex);
+
+            let start = Instant::now();
+            let output = uut
+                .output()
+                .map_err(|e| format!("Failed to run your program: {}", e))?;
+
+            let elapsed = start.elapsed().as_nanos();
+            let result = if elapsed > u64::MAX as u128 {
+                TestResult::Fail(String::from("Your program is way too slow"))
+            } else {
+                score.time_ns = elapsed as f64;
+                match output.status.success() {
+                    false => TestResult::Fail(format!(
+                        "Your program exited with a non-zero status code: {}",
+                        String::from_utf8(output.stderr)?
+                    )),
+                    true => {
+                        let out = String::from_utf8(output.stdout)?;
+                        match self.check_answer(&out)? {
+                            false => TestResult::Fail(String::from(
+                                "Your program did not produce the correct result",
+                            )),
+                            true => TestResult::Success(score),
+                        }
+                    }
+                }
+            };
+            Ok(result)
+        } else {
+            Err("Please start with a success variant".into())
+        }
+    }
+}
+
+impl Drop for G2331 {
+    fn drop(&mut self) {
+        std::fs::remove_file(PATH).expect("could not remove file");
     }
 }

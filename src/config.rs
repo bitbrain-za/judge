@@ -36,7 +36,7 @@ impl RunMode {
         }
 
         if args.contains(&String::from("--version")) {
-            println!("judge_2331 {}", env!("CARGO_PKG_VERSION"));
+            println!("judge {}", env!("CARGO_PKG_VERSION"));
             std::process::exit(0);
         }
 

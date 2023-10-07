@@ -10,3 +10,9 @@
   - adds menu
   - reduces the samples when testing
   - better output formatting
+  - POC second challenge
+
+## 2.0
+  - Renamed to judge
+  - More reuseable
+  - Added challenge 2332

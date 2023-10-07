@@ -4,19 +4,18 @@ mod debug_config;
 mod generator;
 use log::{debug, error, info, warn};
 mod card;
+mod menu;
 mod read;
 mod run;
-use generator::Generator;
-mod menu;
 
-const ATTEMP_SAMPLES: usize = 100_000;
-const TEST_SAMPLES: usize = 100_000;
+const ATTEMP_SAMPLES: usize = 1000;
+const TEST_SAMPLES: usize = 100;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<String>>();
     debug_config::init_debug(&args);
 
-    info!("Firing up judge_2331 {}", env!("CARGO_PKG_VERSION"));
+    info!("Firing up judge v{}", env!("CARGO_PKG_VERSION"));
     let db_pass = match option_env!("DB_PASSWORD") {
         Some(pass) => pass,
         None => {
@@ -40,7 +39,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match config {
         config::RunMode::Update(config) => {
-            let mut spinner = cliclack::spinner();
             println!("Welcome to the code challenge {}!", whoami::realname());
             debug!(
                 "Connecting to database code_challenge.{}",
@@ -60,14 +58,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
             info!("setting up to run {}", config.command);
-            spinner.start("Generating challenge data");
-            // TODO Move this inside the challenge itself (incl the number of cases)
-            let mut generator = match config.test_mode {
-                true => generator::G2331::new(TEST_SAMPLES),
-                false => generator::G2331::new(ATTEMP_SAMPLES),
+            let count = match config.test_mode {
+                true => TEST_SAMPLES,
+                false => ATTEMP_SAMPLES,
             };
-            spinner.stop("Done generating challenge data");
-            match run::run(&mut db, &config, &mut generator) {
+            match run::run(&mut db, &config, count) {
                 Ok(_) => {}
                 Err(e) => {
                     warn!("Failed to run your program: {}", e);

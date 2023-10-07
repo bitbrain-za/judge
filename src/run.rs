@@ -1,80 +1,35 @@
 use crate::card::Message;
 use crate::config::WriteConfig;
-use crate::generator::Generator;
-use cliclack::spinner;
+use crate::generator::{challenges::Challenges, TestResult};
 use log::{debug, warn};
 use scoreboard_db::{Db, NiceTime, Score};
 use sha256::try_digest;
 use std::path::Path;
-use std::process::Command;
-use std::time::Instant;
 
-#[derive(Clone)]
-enum TestResult {
-    Success(Score),
-    Fail(String),
-    Stolen(Score, Score),
-}
-
-const PATH: &str = "test.json";
-
-/* wrap run_sim so we cleanup after ourselves */
 pub fn run(
     db: &mut Db,
     config: &WriteConfig,
-    generator: &mut impl Generator,
+    count: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let result = run_sim(db, config, generator);
-    std::fs::remove_file(PATH).expect("could not remove file");
-    result
-}
-
-fn run_sim(
-    db: &mut Db,
-    config: &WriteConfig,
-    generator: &mut impl Generator,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut spinner = spinner();
-    spinner.start(format!("Setting up to run {}", config.command));
-    generator.save_to_file(PATH)?;
+    let mut spinner = cliclack::spinner();
+    spinner.start("Preparing for challenge");
     let hash = get_hash(&config.command)?;
     debug!("hash: {}", hash);
-    let mut score = Score::new(&config.name, &config.command, 0.0, hash, &config.language);
+    let score = Score::new(&config.name, &config.command, 0.0, hash, &config.language);
 
-    // run the test
-    let ex = format!("{} {}", config.command, PATH);
-    let mut uut = Command::new("sh");
-    uut.arg("-c").arg(ex);
-
-    let start = Instant::now();
-    spinner.start(format!("Running {}", config.command));
-    let output = uut
-        .output()
-        .map_err(|e| format!("Failed to run your program: {}", e))?;
-    spinner.stop("Done running");
-
-    let elapsed = start.elapsed().as_nanos();
-    let result = if elapsed > u64::MAX as u128 {
-        TestResult::Fail(String::from("Your program is way too slow"))
-    } else {
-        score.time_ns = elapsed as f64;
-        match output.status.success() {
-            false => TestResult::Fail(format!(
-                "Your program exited with a non-zero status code: {}",
-                String::from_utf8(output.stderr)?
-            )),
-            true => {
-                let out = String::from_utf8(output.stdout)?;
-                match generator.check_answer(&out)? {
-                    false => TestResult::Fail(String::from(
-                        "Your program did not produce the correct result",
-                    )),
-                    true => TestResult::Success(score),
-                }
-            }
+    spinner.start("Generating challenge data");
+    let challenges = Challenges::new();
+    let mut generator = match challenges.make_generator(&config.challenge.command, count) {
+        Some(g) => g,
+        None => {
+            warn!("Failed to create generator for {}", config.challenge.name);
+            return Ok(());
         }
     };
+    generator.setup()?;
+    spinner.stop("Done setting up");
 
+    let result = generator.run(TestResult::Success(score))?;
     let result = check_for_plagiarism(result, db)?;
 
     match result {
