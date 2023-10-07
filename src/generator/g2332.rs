@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use crate::generator::Generator;
-use log::{debug, trace};
+use log::debug;
 use rand::seq::SliceRandom;
 use rand::{thread_rng, Rng};
 use std::process::Command;
@@ -9,10 +9,9 @@ use std::time::Instant;
 
 use super::TestResult;
 
-const BASELINE_TESTS: u128 = 1000;
 const MIN_SIZE: usize = 500;
 const MAX_SIZE: usize = 1000;
-const TEST_SAMPLES: usize = 1000;
+const TEST_SAMPLES: usize = 10_000;
 const ATTEMPT_SAMPLES: usize = 10_000;
 
 pub struct G2332 {
@@ -101,30 +100,42 @@ impl Generator for G2332 {
 
     fn run(&self, test: TestResult) -> Result<TestResult, Box<dyn std::error::Error>> {
         if let TestResult::Success(score) = test {
-            let mut spinner = cliclack::spinner();
             let mut score = score;
+            let mut spinner = cliclack::spinner();
+            let mut commands: Vec<(Command, Command)> = Vec::new();
 
-            /* Try remove overhead */
-            spinner.start("Establishing baseline");
-            let mut commands: Vec<Command> = Vec::new();
+            spinner.start("Creating commands");
 
             /* prepare all the commands in advance */
-            for _ in 0..BASELINE_TESTS {
-                let ex = format!("{} 0,1,1", score.command);
+            for test_case in &self.test_cases {
+                let ex = format!("{} {}", score.command, Self::print_test_case(test_case));
                 let mut uut = Command::new("sh");
                 uut.arg("-c").arg(ex);
-                commands.push(uut);
+
+                let ex = format!("{} 0,1,1", score.command);
+                let mut uutb = Command::new("sh");
+                uutb.arg("-c").arg(ex);
+
+                commands.push((uut, uutb));
             }
 
             /* Run the test */
-            spinner.start("Running baseline tests");
-            let mut baseline: u128 = 0;
+            spinner.stop("All set...");
+            let mut spinner = cliclack::spinner();
 
-            for (i, uut) in commands.iter_mut().enumerate() {
-                trace!("Running {:?}", uut);
-                spinner.start(format!("Baseline {} of {}", i, BASELINE_TESTS));
+            let mut answers: Vec<String> = Vec::new();
+            let mut baseline: u128 = 0;
+            let mut elapsed: u128 = 0;
+
+            for (uut, base) in commands.iter_mut() {
+                spinner.start(format!(
+                    "Running tests {} of {}",
+                    answers.len(),
+                    self.test_cases.len()
+                ));
+
                 let start = Instant::now();
-                let output = uut
+                let output = base
                     .output()
                     .map_err(|e| format!("Failed to run your program: {}", e))?;
                 baseline += start.elapsed().as_nanos();
@@ -141,39 +152,7 @@ impl Generator for G2332 {
                         out
                     )));
                 }
-            }
-            let baseline = baseline / BASELINE_TESTS * self.count as u128;
-            spinner.stop("Baseline established");
 
-            /* The real run */
-
-            let mut spinner = cliclack::spinner();
-            spinner.start("Creating commands");
-            let mut commands: Vec<Command> = Vec::new();
-
-            /* prepare all the commands in advance */
-            for test_case in &self.test_cases {
-                let ex = format!("{} {}", score.command, Self::print_test_case(test_case));
-                let mut uut = Command::new("sh");
-                uut.arg("-c").arg(ex);
-                commands.push(uut);
-            }
-
-            /* Run the test */
-            spinner.stop("All set...");
-            let mut spinner = cliclack::spinner();
-
-            let mut answers: Vec<String> = Vec::new();
-
-            let mut elapsed: u128 = 0;
-
-            for uut in commands.iter_mut() {
-                trace!("Running {:?}", uut);
-                spinner.start(format!(
-                    "Running tests {} of {}",
-                    answers.len(),
-                    self.test_cases.len()
-                ));
                 let start = Instant::now();
                 let output = uut
                     .output()
@@ -195,6 +174,9 @@ impl Generator for G2332 {
                 scoreboard_db::NiceTime::new(elapsed as f64),
                 scoreboard_db::NiceTime::new(baseline as f64)
             );
+            if baseline > elapsed {
+                return Err("Unable to get a good baseline, please try again".into());
+            }
             elapsed -= baseline;
             debug!(
                 "Elapsed: {} after baseline",

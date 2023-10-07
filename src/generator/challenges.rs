@@ -8,8 +8,6 @@ pub struct Challenge {
     pub command: String,
     pub doc_path: String,
     pub table: String,
-    pub test_count: usize,
-    pub attemp_count: usize,
 }
 
 impl Challenge {
@@ -31,8 +29,6 @@ impl Challenges {
                 "/home/philip/code_challenges/judge_23_3_1/src/generator/2331.md",
             ),
             table: String::from("23_3_1"),
-            test_count: 100,
-            attemp_count: 100_000,
         };
 
         let c2332 = Challenge {
@@ -42,8 +38,6 @@ impl Challenges {
                 "/home/philip/code_challenges/judge_23_3_1/src/generator/2332.md",
             ),
             table: String::from("23_3_2"),
-            test_count: 100,
-            attemp_count: 10_000,
         };
 
         Self {
