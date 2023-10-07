@@ -11,6 +11,7 @@ pub enum RunMode {
     Update(WriteConfig),
     Read(ReadConfig),
     Wipe(String),
+    Other,
 }
 
 impl RunMode {

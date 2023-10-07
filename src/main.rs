@@ -7,12 +7,16 @@ mod card;
 mod read;
 mod run;
 use generator::Generator;
+mod menu;
+use menu::Menu;
 
 const TEST_SAMPLES: usize = 100_000;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<String>>();
     debug_config::init_debug(&args);
+
+    Menu::run()?;
 
     info!("Firing up judge_2331 {}", env!("CARGO_PKG_VERSION"));
     let db_pass = match option_env!("DB_PASSWORD") {
@@ -34,6 +38,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     debug!("Config: {:?}", config);
 
     match config {
+        config::RunMode::Other => {
+            error!("Invalid arguments");
+            std::process::exit(0);
+        }
         config::RunMode::Update(config) => {
             debug!(
                 "Connecting to database code_challenge.{}",
