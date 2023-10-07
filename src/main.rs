@@ -8,9 +8,6 @@ mod menu;
 mod read;
 mod run;
 
-const ATTEMP_SAMPLES: usize = 1000;
-const TEST_SAMPLES: usize = 100;
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<String>>();
     debug_config::init_debug(&args);
@@ -58,11 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             };
             info!("setting up to run {}", config.command);
-            let count = match config.test_mode {
-                true => TEST_SAMPLES,
-                false => ATTEMP_SAMPLES,
-            };
-            match run::run(&mut db, &config, count) {
+            match run::run(&mut db, &config) {
                 Ok(_) => {}
                 Err(e) => {
                     warn!("Failed to run your program: {}", e);

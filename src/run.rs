@@ -6,11 +6,7 @@ use scoreboard_db::{Db, NiceTime, Score};
 use sha256::try_digest;
 use std::path::Path;
 
-pub fn run(
-    db: &mut Db,
-    config: &WriteConfig,
-    count: usize,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::Error>> {
     let mut spinner = cliclack::spinner();
     spinner.start("Preparing for challenge");
     let hash = get_hash(&config.command)?;
@@ -19,7 +15,8 @@ pub fn run(
 
     spinner.start("Generating challenge data");
     let challenges = Challenges::new();
-    let mut generator = match challenges.make_generator(&config.challenge.command, count) {
+    let mut generator = match challenges.make_generator(&config.challenge.command, config.test_mode)
+    {
         Some(g) => g,
         None => {
             warn!("Failed to create generator for {}", config.challenge.name);

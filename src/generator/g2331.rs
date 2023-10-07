@@ -22,9 +22,16 @@ impl Display for G2331 {
 }
 
 const PATH: &str = "test.json";
+const TEST_SAMPLES: usize = 100;
+const ATTEMPT_SAMPLES: usize = 100_000;
 
 impl G2331 {
-    pub fn new(count: usize) -> Self {
+    pub fn new(test: bool) -> Self {
+        let count = match test {
+            true => TEST_SAMPLES,
+            false => ATTEMPT_SAMPLES,
+        };
+
         let mut s = Self {
             count,
             test_cases: Vec::new(),

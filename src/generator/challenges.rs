@@ -8,6 +8,8 @@ pub struct Challenge {
     pub command: String,
     pub doc_path: String,
     pub table: String,
+    pub test_count: usize,
+    pub attemp_count: usize,
 }
 
 impl Challenge {
@@ -29,6 +31,8 @@ impl Challenges {
                 "/home/philip/code_challenges/judge_23_3_1/src/generator/2331.md",
             ),
             table: String::from("23_3_1"),
+            test_count: 100,
+            attemp_count: 100_000,
         };
 
         let c2332 = Challenge {
@@ -38,6 +42,8 @@ impl Challenges {
                 "/home/philip/code_challenges/judge_23_3_1/src/generator/2332.md",
             ),
             table: String::from("23_3_2"),
+            test_count: 100,
+            attemp_count: 10_000,
         };
 
         Self {
@@ -49,11 +55,11 @@ impl Challenges {
         self.challenges.iter().find(|c| c.command == challenge)
     }
 
-    pub fn make_generator(&self, challenge: &str, count: usize) -> Option<Box<dyn Generator>> {
+    pub fn make_generator(&self, challenge: &str, test: bool) -> Option<Box<dyn Generator>> {
         debug!("make_generator: {}", challenge);
         match challenge {
-            "2331" => Some(Box::new(G2331::new(count))),
-            "2332" => Some(Box::new(G2332::new(count))),
+            "2331" => Some(Box::new(G2331::new(test))),
+            "2332" => Some(Box::new(G2332::new(test))),
             _ => None,
         }
     }

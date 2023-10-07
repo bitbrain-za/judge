@@ -12,6 +12,8 @@ use super::TestResult;
 const BASELINE_TESTS: u128 = 1000;
 const MIN_SIZE: usize = 500;
 const MAX_SIZE: usize = 1000;
+const TEST_SAMPLES: usize = 1000;
+const ATTEMPT_SAMPLES: usize = 10_000;
 
 pub struct G2332 {
     pub count: usize,
@@ -27,7 +29,11 @@ impl Display for G2332 {
 }
 
 impl G2332 {
-    pub fn new(count: usize) -> Self {
+    pub fn new(test: bool) -> Self {
+        let count = match test {
+            true => TEST_SAMPLES,
+            false => ATTEMPT_SAMPLES,
+        };
         let mut s = Self {
             count,
             test_cases: Vec::new(),
@@ -103,11 +109,8 @@ impl Generator for G2332 {
             let mut commands: Vec<Command> = Vec::new();
 
             /* prepare all the commands in advance */
-            for i in 0..BASELINE_TESTS {
-                let ex = format!(
-                    "echo {}",
-                    Self::print_test_case(self.test_cases.get(i as usize).unwrap())
-                );
+            for _ in 0..BASELINE_TESTS {
+                let ex = format!("{} 0,1,1", score.command);
                 let mut uut = Command::new("sh");
                 uut.arg("-c").arg(ex);
                 commands.push(uut);
@@ -119,11 +122,7 @@ impl Generator for G2332 {
 
             for (i, uut) in commands.iter_mut().enumerate() {
                 trace!("Running {:?}", uut);
-                spinner.start(format!(
-                    "Establishing baseline tests {} of {}",
-                    i,
-                    self.test_cases.len()
-                ));
+                spinner.start(format!("Baseline {} of {}", i, BASELINE_TESTS));
                 let start = Instant::now();
                 let output = uut
                     .output()
@@ -133,6 +132,13 @@ impl Generator for G2332 {
                     return Ok(TestResult::Fail(format!(
                         "Your program exited with a non-zero status code: {}",
                         String::from_utf8(output.stderr)?
+                    )));
+                }
+                let out = String::from_utf8(output.stdout)?;
+                if "0" != out.trim() {
+                    return Ok(TestResult::Fail(format!(
+                        "Your program did not produce the correct result: {}",
+                        out
                     )));
                 }
             }
@@ -154,7 +160,8 @@ impl Generator for G2332 {
             }
 
             /* Run the test */
-            spinner.start("Running tests");
+            spinner.stop("All set...");
+            let mut spinner = cliclack::spinner();
 
             let mut answers: Vec<String> = Vec::new();
 
