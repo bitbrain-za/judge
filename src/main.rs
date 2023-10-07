@@ -8,16 +8,13 @@ mod read;
 mod run;
 use generator::Generator;
 mod menu;
-use menu::Menu;
 
-const TEST_SAMPLES: usize = 100_000;
+const ATTEMP_SAMPLES: usize = 100_000;
+const TEST_SAMPLES: usize = 500;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<String>>();
     debug_config::init_debug(&args);
-
-    Menu::run()?;
-    return Ok(());
 
     info!("Firing up judge_2331 {}", env!("CARGO_PKG_VERSION"));
     let db_pass = match option_env!("DB_PASSWORD") {
@@ -31,10 +28,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = match config::RunMode::from_args(&args) {
         Ok(config) => config,
-        Err(e) => {
-            error!("Failed to parse arguments: {}", e);
-            return Ok(());
-        }
+        Err(_) => match menu::Menu::run(None) {
+            Ok(config) => config,
+            Err(e) => {
+                error!("Failed to establish run mode: {}", e);
+                return Ok(());
+            }
+        },
     };
     debug!("Config: {:?}", config);
 
@@ -59,7 +59,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             println!("Welcome to the code challenge {}!", whoami::realname());
             info!("setting up to run {}", config.command);
-            let mut generator = generator::G2331::new(TEST_SAMPLES);
+            // TODO Move this inside the challenge itself (incl the number of cases)
+            let mut generator = match config.test_mode {
+                true => generator::G2331::new(TEST_SAMPLES),
+                false => generator::G2331::new(ATTEMP_SAMPLES),
+            };
             match run::run(&mut db, &config, &mut generator) {
                 Ok(_) => {}
                 Err(e) => {
@@ -87,7 +91,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
             match read::read_scores(config, &mut db) {
                 Ok(reader) => {
-                    // println!("{}", reader);
                     if let Err(e) = reader.pretty_print() {
                         error!("Failed to print scores: {}", e);
                     }

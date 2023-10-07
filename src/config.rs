@@ -90,6 +90,17 @@ pub struct ReadConfig {
     pub filters: FilterBuilder,
 }
 
+impl Default for ReadConfig {
+    fn default() -> Self {
+        let challenges = Challenges::new();
+        let challenge = challenges.get_challenge("2331").expect("FIX ME!");
+        ReadConfig {
+            challenge: challenge.clone(),
+            filters: FilterBuilder::new(),
+        }
+    }
+}
+
 impl ReadConfig {
     fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
         let challenges = Challenges::new();

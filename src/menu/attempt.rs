@@ -3,8 +3,9 @@ use crate::menu::common::challenge_selection;
 use cliclack::{input, intro, outro, select};
 use log::debug;
 
-pub fn run() -> Result<Option<RunMode>, Box<dyn std::error::Error>> {
+pub fn run(allow_quiet_mode: Option<bool>) -> Result<RunMode, Box<dyn std::error::Error>> {
     intro("Help")?;
+    let allow_quiet_mode = allow_quiet_mode.unwrap_or(true);
 
     let challenge = challenge_selection()?;
 
@@ -35,10 +36,18 @@ pub fn run() -> Result<Option<RunMode>, Box<dyn std::error::Error>> {
         .item(true, "Yes", "We'll do the real thing later")
         .interact()?;
 
-    let publish: bool = select("Would you like to publish this?")
-        .item(false, "Yes!", "Good for you")
-        .item(true, "No", "That's a bit dissapointing")
-        .interact()?;
+    let publish: bool = if allow_quiet_mode {
+        if !test_mode {
+            select("Would you like to publish this?")
+                .item(false, "Yes!", "Good for you")
+                .item(true, "No", "That's a bit dissapointing")
+                .interact()?
+        } else {
+            false
+        }
+    } else {
+        true
+    };
 
     outro("All set, let's go!")?;
 
@@ -53,5 +62,5 @@ pub fn run() -> Result<Option<RunMode>, Box<dyn std::error::Error>> {
 
     debug!("Config: {:?}", config);
 
-    Ok(Some(RunMode::Update(config)))
+    Ok(RunMode::Update(config))
 }
