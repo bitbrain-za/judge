@@ -102,7 +102,7 @@ impl Generator for G2332 {
         if let TestResult::Success(score) = test {
             let mut score = score;
             let mut spinner = cliclack::spinner();
-            let mut commands: Vec<(Command, Command)> = Vec::new();
+            let mut commands: Vec<Command> = Vec::new();
 
             spinner.start("Creating commands");
 
@@ -112,12 +112,11 @@ impl Generator for G2332 {
                 let mut uut = Command::new("sh");
                 uut.arg("-c").arg(ex);
 
-                let ex = format!("{} 0,1,1", score.command);
-                let mut uutb = Command::new("sh");
-                uutb.arg("-c").arg(ex);
-
-                commands.push((uut, uutb));
+                commands.push(uut);
             }
+            let ex = format!("{} 0,1,1", score.command);
+            let mut base = Command::new("sh");
+            base.arg("-c").arg(ex);
 
             /* Run the test */
             spinner.stop("All set...");
@@ -127,7 +126,7 @@ impl Generator for G2332 {
             let mut baseline: u128 = 0;
             let mut elapsed: u128 = 0;
 
-            for (uut, base) in commands.iter_mut() {
+            for uut in commands.iter_mut() {
                 spinner.start(format!(
                     "Running tests {} of {}",
                     answers.len(),
