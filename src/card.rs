@@ -23,8 +23,8 @@ pub struct Content {
 
 impl Message {
     const MAX_SCORES: Option<usize> = Some(1000);
-    pub fn new(score: &Score, leaders: &[Score]) -> Self {
-        let card = AdaptiveCard::new(score, leaders);
+    pub fn new(score: &Score, leaders: &[Score], challenge: &str) -> Self {
+        let card = AdaptiveCard::new(score, leaders, challenge);
         let content = Content {
             content_type: "application/vnd.microsoft.card.adaptive".to_string(),
             content: card,
@@ -37,7 +37,11 @@ impl Message {
         }
     }
 
-    pub fn send_card(db: &mut Db, score: &Score) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn send_card(
+        db: &mut Db,
+        score: &Score,
+        challenge: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let scores: Vec<Score> = db.get_scores(Self::MAX_SCORES)?;
 
         let filters = FilterBuilder::new()
@@ -48,7 +52,7 @@ impl Message {
             .filter(filters.clone())
             .scores();
 
-        let card = Message::new(score, &scores);
+        let card = Message::new(score, &scores, challenge);
         card.send()
     }
 
@@ -161,12 +165,13 @@ struct Column {
 }
 
 impl AdaptiveCard {
-    pub fn new(score: &Score, leaders: &[Score]) -> Self {
+    pub fn new(score: &Score, leaders: &[Score], challenge: &str) -> Self {
         let card = AdaptiveCard::default();
         let now: String = Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true);
 
         let s: String = serde_json::to_string(&card).unwrap();
         let s = s.replace("{PLAYER}", &score.name);
+        let s = s.replace("{CHALLENGE}", challenge);
         let s = s.replace("{DATE}", &now);
 
         let mut body = format!("{}", score);
@@ -230,7 +235,7 @@ impl Default for AdaptiveCard {
                 CardElement::TextBlock {
                     size: "large".to_string(),
                     weight: "bolder".to_string(),
-                    text: "New Run!".to_string(),
+                    text: "New Run for {CHALLENGE}!".to_string(),
                     wrap: false,
                     spacing: None,
                     is_subtle: None,

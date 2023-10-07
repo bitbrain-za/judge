@@ -25,18 +25,14 @@ impl Challenges {
         let c2331 = Challenge {
             name: String::from("Find the odd one out"),
             command: String::from("2331"),
-            doc_path: String::from(
-                "/home/philip/code_challenges/judge_23_3_1/src/generator/2331.md",
-            ),
+            doc_path: String::from("2331.md"),
             table: String::from("23_3_1"),
         };
 
         let c2332 = Challenge {
             name: String::from("Find the odd one out two"),
             command: String::from("2332"),
-            doc_path: String::from(
-                "/home/philip/code_challenges/judge_23_3_1/src/generator/2332.md",
-            ),
+            doc_path: String::from("2332.md"),
             table: String::from("23_3_2"),
         };
 

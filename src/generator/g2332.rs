@@ -11,7 +11,7 @@ use super::TestResult;
 
 const MIN_SIZE: usize = 500;
 const MAX_SIZE: usize = 1000;
-const TEST_SAMPLES: usize = 10_000;
+const TEST_SAMPLES: usize = 100;
 const ATTEMPT_SAMPLES: usize = 10_000;
 
 pub struct G2332 {

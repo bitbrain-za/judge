@@ -45,7 +45,7 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
                 elapsed = NiceTime::new(score.time_ns)
             );
             if config.publish {
-                let _ = Message::send_card(db, &score);
+                let _ = Message::send_card(db, &score, &config.challenge.name);
             }
         }
         TestResult::Stolen(thief, victim) => {
