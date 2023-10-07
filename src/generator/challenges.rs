@@ -27,8 +27,15 @@ impl Challenges {
             table: String::from("23_3_1"),
         };
 
+        let c2332 = Challenge {
+            name: String::from("Find the odd one out two"),
+            command: String::from("2332"),
+            doc_path: String::from("/home/philip/code_challenges/judge_23_3_1/README.md"),
+            table: String::from("23_3_2"),
+        };
+
         Self {
-            challenges: vec![c2331],
+            challenges: vec![c2331, c2332],
         }
     }
 
