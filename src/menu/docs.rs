@@ -9,6 +9,7 @@ pub fn run() -> Result<Option<RunMode>, Box<dyn std::error::Error>> {
         .initial_value("submit")
         .item("judge", "About the Judge", "")
         .item("challenges", "Challenge Info", "")
+        .item("changelog", "Change Log", "")
         .item("exit", "Exit", "")
         .interact()?;
 
@@ -20,6 +21,9 @@ pub fn run() -> Result<Option<RunMode>, Box<dyn std::error::Error>> {
             let challenge = challenge_selection()?;
             outro(format!("You selected {}", challenge.command))?;
             challenge.print();
+        }
+        "changelog" => {
+            termimad::print_text(include_str!("../../CHANGELOG.md"));
         }
         _ => {}
     }

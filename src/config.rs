@@ -11,6 +11,7 @@ pub enum RunMode {
     Update(WriteConfig),
     Read(ReadConfig),
     Wipe(String),
+    Announce(String),
 }
 
 impl RunMode {
@@ -21,10 +22,14 @@ impl RunMode {
     pub fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
         let user = whoami::username();
 
+        debug!("Args: {:?}", args);
+        if args.is_empty() {
+            return Err("No arguments provided".into());
+        }
+
         if args.contains(&String::from("-h"))
             || args.contains(&String::from("--help"))
             || args.contains(&String::from("-?"))
-            || args.is_empty()
         {
             Self::print_help();
             std::process::exit(0);
@@ -75,9 +80,15 @@ impl RunMode {
                 .to_string();
 
             RunMode::Wipe(table)
+        } else if args.contains(&String::from("-A")) {
+            let index = args.iter().position(|r| r == "-A").unwrap();
+            let message = args
+                .get(index + 1)
+                .ok_or("-A must provide a string")?
+                .to_string();
+            debug!("Announcing: {:?}", message);
+            RunMode::Announce(message)
         } else {
-            error!("You need to provide arguments");
-            Self::print_help();
             return Err("No mode provided".into());
         };
         Ok(mode)

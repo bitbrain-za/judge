@@ -116,6 +116,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
+        config::RunMode::Announce(_message) => {
+            todo!()
+        }
     }
     Ok(())
 }
