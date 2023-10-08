@@ -1,7 +1,8 @@
 use crate::config::WriteConfig;
 use crate::generator::{challenges::Challenges, TestResult};
+use crate::settings;
 use crate::teams::card::Message;
-use log::{debug, warn};
+use log::{debug, error, warn};
 use scoreboard_db::{Db, NiceTime, Score};
 use sha256::try_digest;
 use std::path::Path;
@@ -35,6 +36,37 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
         }
         TestResult::Success(score) => {
             if !config.test_mode {
+                /* Check if a spot prize is awarded */
+                let previous = db.get_scores(None)?;
+
+                let settings_path = match option_env!("SETTINGS_PATH") {
+                    Some(path) => path,
+                    None => return Err(
+                        "This program needs to be compiled with the $SETTINGS_PATH env variable set"
+                            .into(),
+                    ),
+                };
+                let settings = match settings::Settings::load(settings_path) {
+                    Ok(settings) => settings,
+                    Err(e) => {
+                        error!("Failed to load settings: {}", e);
+                        return Ok(());
+                    }
+                };
+
+                let prize =
+                    settings.gets_a_prize(&config.challenge.command, &score.language, &previous)?;
+
+                if prize {
+                    cliclack::note(
+                        "Congratulations",
+                        format!(
+                            "You have won a spot prize for the first {} submission",
+                            score.language
+                        ),
+                    )?;
+                }
+
                 db.insert_score(&score)?;
             }
 
