@@ -54,7 +54,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match config {
         config::RunMode::Update(config) => {
-            println!("Welcome to the code challenge {}!", whoami::realname());
+            cliclack::intro(format!(
+                "Welcome to the code challenge {}!",
+                whoami::realname()
+            ))?;
+
+            if !settings.allowed_to_run(&config.challenge.command)? {
+                cliclack::outro("This challenge is not yet available for submissions")?;
+                return Ok(());
+            }
+
             debug!(
                 "Connecting to database code_challenge.{}",
                 config.challenge.table

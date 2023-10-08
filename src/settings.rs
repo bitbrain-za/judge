@@ -57,7 +57,7 @@ impl ChallengeConfig {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq)]
 pub enum Status {
     Active,
     Past,
@@ -85,6 +85,11 @@ impl Settings {
             challenge.update()?;
         }
         Ok(())
+    }
+
+    pub fn allowed_to_run(&self, id: &str) -> Result<bool, Box<dyn Error>> {
+        let challenge = self.get_challenge(id)?;
+        Ok(challenge.get_status() != Status::Closed)
     }
 
     pub fn gets_a_prize(
