@@ -8,6 +8,7 @@ mod read;
 mod run;
 mod settings;
 mod teams;
+use teams::publish;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<String>>();
@@ -81,6 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     return Ok(());
                 }
             };
+
             info!("setting up to run {}", config.command);
             match run::run(&mut db, &config) {
                 Ok(_) => {}
@@ -134,7 +136,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-        config::RunMode::Announce(_message) => {
+        config::RunMode::Announce(message) => {
+            match message.as_str() {
+                "release" => {
+                    info!("Announcing release");
+
+                    let release = format!("judge v{} is live\n", env!("CARGO_PKG_VERSION"));
+                    let changes = include_str!("../CHANGELOG.md");
+
+                    let _ = publish::Publisher::new()?.publish(publish::PublishType::Announcement(
+                        (release, changes.to_string()),
+                    ));
+                }
+                _ => {
+                    error!("Unknown announcement: {}", message);
+                }
+            }
             todo!()
         }
     }

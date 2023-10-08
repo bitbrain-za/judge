@@ -1,7 +1,7 @@
 use crate::config::WriteConfig;
 use crate::generator::{challenges::Challenges, TestResult};
 use crate::settings;
-use crate::teams::card::Message;
+use crate::teams::publish;
 use log::{debug, error, warn};
 use scoreboard_db::{Db, NiceTime, Score};
 use sha256::try_digest;
@@ -56,6 +56,7 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
 
                 let prize =
                     settings.gets_a_prize(&config.challenge.command, &score.language, &previous)?;
+                db.insert_score(&score)?;
 
                 if prize {
                     cliclack::note(
@@ -65,9 +66,12 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
                             score.language
                         ),
                     )?;
-                }
 
-                db.insert_score(&score)?;
+                    let _ = publish::Publisher::new()?.publish(publish::PublishType::Prize((
+                        config.challenge.name.clone(),
+                        score.clone(),
+                    )));
+                }
             }
 
             println!(
@@ -77,7 +81,11 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
                 elapsed = NiceTime::new(score.time_ns)
             );
             if config.publish {
-                let _ = Message::send_card(db, &score, &config.challenge.name);
+                let _ = publish::Publisher::new()?.publish(publish::PublishType::NewScore((
+                    config.challenge.name.clone(),
+                    score,
+                    db.get_scores(None)?,
+                )));
             }
         }
         TestResult::Stolen(thief, victim) => {
@@ -92,7 +100,12 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
                 victim.name
             );
             if !config.test_mode {
-                let _ = Message::send_copy_message(db, &thief.name, &victim.name);
+                let _ = publish::Publisher::new()?.publish(publish::PublishType::CopyCard {
+                    challenge: config.challenge.name.clone(),
+                    thief: thief.name,
+                    victim: victim.name,
+                    scores: db.get_scores(None)?,
+                });
             }
         }
     }
