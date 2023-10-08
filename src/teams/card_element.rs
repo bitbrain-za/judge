@@ -39,6 +39,23 @@ pub enum FontWeight {
     Bolder,
 }
 
+#[derive(Default, Serialize, Deserialize)]
+pub enum ImageSize {
+    #[default]
+    Auto,
+    Stretch,
+    Small,
+    Medium,
+    Large,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+pub enum ImageStyle {
+    #[default]
+    Default,
+    Person,
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum CardElement {
@@ -62,10 +79,10 @@ pub enum CardElement {
     },
     Image {
         url: String,
-        #[serde(default)]
-        size: String,
-        #[serde(default)]
-        style: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        style: Option<ImageStyle>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        size: Option<ImageSize>,
     },
 }
 
@@ -88,5 +105,39 @@ impl Display for CardElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let json = serde_json::to_string_pretty(self).unwrap();
         write!(f, "{}", json)
+    }
+}
+
+impl CardElement {
+    pub fn text_block(text: &str) -> Self {
+        CardElement::TextBlock {
+            text: text.to_string(),
+            color: Some(Colour::Default),
+            size: Some(FontSize::Default),
+            weight: Some(FontWeight::Default),
+            wrap: true,
+            is_subtle: None,
+            max_lines: None,
+            font_type: Some(FontType::Default),
+        }
+    }
+    pub fn heading_block(text: &str) -> Self {
+        CardElement::TextBlock {
+            text: text.to_string(),
+            color: Some(Colour::Default),
+            size: Some(FontSize::Large),
+            weight: Some(FontWeight::Bolder),
+            wrap: true,
+            is_subtle: None,
+            max_lines: None,
+            font_type: Some(FontType::Default),
+        }
+    }
+    pub fn _image(url: &str) -> Self {
+        CardElement::Image {
+            url: url.to_string(),
+            style: None,
+            size: None,
+        }
     }
 }

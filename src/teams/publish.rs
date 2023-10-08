@@ -1,15 +1,19 @@
-use super::{adaptive_card::AdaptiveCard, card, teams_message::Message};
+use super::{adaptive_card::AdaptiveCard, teams_message::Message};
 use log::debug;
 use scoreboard_db::Score;
-use serde::{Deserialize, Serialize};
 use serde_json;
 use std::{error::Error, fmt::Display};
 
 pub enum PublishType {
-    NewScore((Score, Vec<Score>)),
-    CopyCard(Score),
-    Announcement(String),
-    Prize((Score, Vec<Score>)),
+    NewScore((String, Score, Vec<Score>)),
+    CopyCard {
+        challenge: String,
+        thief: String,
+        victim: String,
+        scores: Vec<Score>,
+    },
+    Announcement((String, String)),
+    Prize((String, Score)),
     Message(String),
 }
 
@@ -41,27 +45,11 @@ impl Publisher {
     }
 
     pub fn publish(&self, content: PublishType) -> Result<(), Box<dyn std::error::Error>> {
-        self.send(&format!("{}", content))
+        let message = Message::from(content);
+        self.send(&message)
     }
 
-    fn send(&self, body: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let body = String::from(body);
-        debug!("BODY: {:?}", body);
-        let client = reqwest::blocking::Client::new();
-        let req = client
-            .post(&self.webhook)
-            .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .body(body);
-
-        debug!("Request: {:?}", req);
-
-        let res = req.send()?;
-        debug!("Response: {:?}", res);
-        debug!("Response: {:?}", res.text()?);
-        Ok(())
-    }
-
-    fn send_message(&self, body: &Message) -> Result<(), Box<dyn std::error::Error>> {
+    fn send(&self, body: &Message) -> Result<(), Box<dyn std::error::Error>> {
         debug!("BODY: {}", serde_json::to_string_pretty(body)?);
         let client = reqwest::blocking::Client::new();
         let req = client
@@ -81,6 +69,6 @@ impl Publisher {
         let adaptive_card = AdaptiveCard::test_card();
         let message: Message = Message::from(adaptive_card);
 
-        self.send_message(&message).unwrap();
+        self.send(&message).unwrap();
     }
 }

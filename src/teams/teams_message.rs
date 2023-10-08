@@ -28,3 +28,10 @@ impl From<AdaptiveCard> for Message {
         }
     }
 }
+
+impl From<PublishType> for Message {
+    fn from(publish: PublishType) -> Self {
+        let card = AdaptiveCard::from(publish);
+        Message::from(card)
+    }
+}

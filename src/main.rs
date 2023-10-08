@@ -89,17 +89,53 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             teams::publish::Publisher::new()?.send_test_card();
 
-            // let dummy = scoreboard_db::Score {
-            //     name: "Dummy".to_string(),
-            //     language: "Dummy".to_string(),
-            //     time_ns: 0.0,
-            //     command: "Dummy".to_string(),
-            //     hash: "1234".to_string(),
-            // };
-            // let _ = teams::card::Message::send_card(&mut db, &dummy, &config.challenge.name);
+            let test_message = teams::publish::PublishType::Message("This is a test!".to_string());
+            let _ = teams::publish::Publisher::new()?.publish(test_message);
 
-            // let elem = teams::card_element::CardElement::default();
-            // debug!("Card element: {}", elem);
+            use scoreboard_db::Builder as FilterBuilder;
+            use scoreboard_db::{Filter, Score, ScoreBoard, SortColumn};
+
+            let scores: Vec<Score> = db.get_scores(Some(1000))?;
+            let filters = FilterBuilder::new()
+                .add_filter(Filter::UniquePlayers)
+                .add_filter(Filter::Sort(SortColumn::Time))
+                .add_filter(Filter::Top(20));
+            let scores = ScoreBoard::new(scores.clone())
+                .filter(filters.clone())
+                .scores();
+
+            let dummy = scoreboard_db::Score {
+                name: "Dummy".to_string(),
+                language: "Dummy".to_string(),
+                time_ns: 0.0,
+                command: "Dummy".to_string(),
+                hash: "1234".to_string(),
+            };
+
+            let test_message = teams::publish::PublishType::NewScore((
+                config.challenge.name.clone(),
+                dummy.clone(),
+                scores.clone(),
+            ));
+            let _ = teams::publish::Publisher::new()?.publish(test_message);
+
+            let test_message = teams::publish::PublishType::CopyCard {
+                challenge: config.challenge.name.clone(),
+                thief: "Thief".to_string(),
+                victim: "Victim".to_string(),
+                scores: scores.clone(),
+            };
+            let _ = teams::publish::Publisher::new()?.publish(test_message);
+
+            let test_message = teams::publish::PublishType::Announcement((
+                "Announcement!".to_string(),
+                "This is an announcement".to_string(),
+            ));
+            let _ = teams::publish::Publisher::new()?.publish(test_message);
+
+            let test_message =
+                teams::publish::PublishType::Prize((config.challenge.name.clone(), dummy.clone()));
+            let _ = teams::publish::Publisher::new()?.publish(test_message);
 
             std::process::exit(0);
             /* Done testing */
