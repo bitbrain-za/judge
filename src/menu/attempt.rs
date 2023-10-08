@@ -30,6 +30,7 @@ pub fn run(allow_quiet_mode: Option<bool>) -> Result<RunMode, Box<dyn std::error
             }
         })
         .interact()?;
+    let language = language.to_lowercase();
 
     let test_mode: bool = select("Are you just testing?")
         .item(false, "No!", "Testing is boring")
