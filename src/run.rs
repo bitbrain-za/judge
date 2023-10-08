@@ -56,6 +56,7 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
 
                 let prize =
                     settings.gets_a_prize(&config.challenge.command, &score.language, &previous)?;
+                db.insert_score(&score)?;
 
                 if prize {
                     cliclack::note(
@@ -65,9 +66,12 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
                             score.language
                         ),
                     )?;
-                }
 
-                db.insert_score(&score)?;
+                    let _ = publish::Publisher::new()?.publish(publish::PublishType::Prize((
+                        config.challenge.name.clone(),
+                        score.clone(),
+                    )));
+                }
             }
 
             println!(

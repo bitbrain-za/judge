@@ -1,8 +1,8 @@
-use super::{adaptive_card::AdaptiveCard, teams_message::Message};
+use super::teams_message::Message;
 use log::debug;
 use scoreboard_db::Score;
 use serde_json;
-use std::{error::Error, fmt::Display};
+use std::error::Error;
 
 pub enum PublishType {
     NewScore((String, Score, Vec<Score>)),
@@ -14,16 +14,7 @@ pub enum PublishType {
     },
     Announcement((String, String)),
     Prize((String, Score)),
-    Message(String),
-}
-
-impl Display for PublishType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PublishType::Message(msg) => write!(f, "{{\"text\": \"{}\"}}", msg),
-            _ => todo!(),
-        }
-    }
+    _Message(String),
 }
 
 pub struct Publisher {
@@ -63,12 +54,5 @@ impl Publisher {
         debug!("Response: {:?}", res);
         debug!("Response: {:?}", res.text()?);
         Ok(())
-    }
-
-    pub fn send_test_card(&self) {
-        let adaptive_card = AdaptiveCard::test_card();
-        let message: Message = Message::from(adaptive_card);
-
-        self.send(&message).unwrap();
     }
 }

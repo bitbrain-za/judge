@@ -32,16 +32,10 @@ impl Display for AdaptiveCard {
     }
 }
 
-impl AdaptiveCard {
-    pub fn test_card() -> Self {
-        Self::default()
-    }
-}
-
 impl From<PublishType> for AdaptiveCard {
     fn from(publish: PublishType) -> Self {
         match publish {
-            PublishType::Message(msg) => AdaptiveCard {
+            PublishType::_Message(msg) => AdaptiveCard {
                 body: vec![CardElement::text_block(&msg)],
                 ..Default::default()
             },

@@ -80,11 +80,11 @@ impl RunMode {
                 .to_string();
 
             RunMode::Wipe(table)
-        } else if args.contains(&String::from("-A")) {
-            let index = args.iter().position(|r| r == "-A").unwrap();
+        } else if args.contains(&String::from("--announcement")) {
+            let index = args.iter().position(|r| r == "--announcement").unwrap();
             let message = args
                 .get(index + 1)
-                .ok_or("-A must provide a string")?
+                .ok_or("--announcement must provide a string")?
                 .to_string();
             debug!("Announcing: {:?}", message);
             RunMode::Announce(message)
