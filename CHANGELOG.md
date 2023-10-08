@@ -3,9 +3,10 @@
 ## 2.0
   - Renamed to judge
   - More reuseable
-  - Added challenge 2332
+  - Adds challenge 2332
   - Adds config for challenge start and end times
   - Adds spot prizes
+  - Gives judge the ability to make announcements
   - Bundle all the shell scripts into "shell" language type
   - Rewrite of teams messaging
  

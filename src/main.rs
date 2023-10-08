@@ -148,6 +148,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         (release, changes.to_string()),
                     ));
                 }
+                "launch" => {
+                    info!("Announcing launch");
+
+                    let launch = "Announcement!".to_string();
+                    let changes =
+                        "New challenge is live. Check in with judge for details".to_string();
+
+                    let _ = publish::Publisher::new()?
+                        .publish(publish::PublishType::Announcement((launch, changes)));
+                }
                 _ => {
                     error!("Unknown announcement: {}", message);
                 }
