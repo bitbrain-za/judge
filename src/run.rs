@@ -1,6 +1,6 @@
-use crate::card::Message;
 use crate::config::WriteConfig;
 use crate::generator::{challenges::Challenges, TestResult};
+use crate::teams::card::Message;
 use log::{debug, warn};
 use scoreboard_db::{Db, NiceTime, Score};
 use sha256::try_digest;

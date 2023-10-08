@@ -3,11 +3,11 @@ use scoreboard_db::Db;
 mod debug_config;
 mod generator;
 use log::{debug, error, info, warn};
-mod card;
 mod menu;
 mod read;
 mod run;
 mod settings;
+mod teams;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<String>>();
