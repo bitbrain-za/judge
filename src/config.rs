@@ -169,10 +169,11 @@ impl ReadConfig {
                     filters.append(Filter::Player(vec![player]));
                 }
                 "--language" => {
-                    let language = args
+                    let mut language = args
                         .get(i + 1)
                         .ok_or("--language must provide a string")?
                         .to_string();
+                    kluge_languages(&mut language);
                     filters.append(Filter::Language(vec![language]));
                 }
                 "--binary" => {
@@ -284,12 +285,16 @@ impl WriteConfig {
                 }
 
                 "-L" => {
-                    language = Some(
-                        args.get(i + 1)
+                    language = Some({
+                        let mut l = args
+                            .get(i + 1)
                             .ok_or("-L must provide a string")?
                             .to_string()
-                            .to_lowercase(),
-                    );
+                            .to_lowercase();
+
+                        kluge_languages(&mut l);
+                        l
+                    });
                 }
                 _ => {}
             }
@@ -310,5 +315,14 @@ impl WriteConfig {
 
         debug!("Write Config: {:?}", config);
         Ok(config)
+    }
+}
+
+fn kluge_languages(input: &mut String) {
+    match input.as_str() {
+        "bash" => *input = "shell".to_string(),
+        "sh" => *input = "shell".to_string(),
+        "zsh" => *input = "shell".to_string(),
+        _ => {}
     }
 }
