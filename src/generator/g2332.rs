@@ -10,10 +10,9 @@ use std::time::Instant;
 
 use super::TestResult;
 
-const MIN_SIZE: usize = 1000;
-const MAX_SIZE: usize = 10_000;
+const TEST_SIZE: usize = 1_000;
 const TEST_SAMPLES: usize = 100;
-const ATTEMPT_SAMPLES: usize = 1_000;
+const ATTEMPT_SAMPLES: usize = 10_000;
 
 pub struct G2332 {
     pub count: usize,
@@ -67,9 +66,8 @@ impl Generator for G2332 {
 
         while self.test_cases.len() < self.count {
             let mut test_case: Vec<u8> = Vec::new();
-            let random_size: usize = rng.gen_range(MIN_SIZE..MAX_SIZE);
             let mut random = 0;
-            for _ in 0..random_size {
+            for _ in 0..TEST_SIZE {
                 random = rng.gen_range(0..255);
                 test_case.push(random);
                 test_case.push(random);
@@ -106,7 +104,6 @@ impl Generator for G2332 {
             spinner.start("Preparing tests");
 
             let mut answers: Vec<String> = Vec::new();
-            let mut elapsed: u128 = 0;
 
             /* prep the test cases */
             let mut tests: Vec<Vec<u8>> = Vec::new();
@@ -128,12 +125,11 @@ impl Generator for G2332 {
 
             spinner.stop("Running tests...");
             /* Run the test */
+            let start = Instant::now();
             for test in tests {
-                let start = Instant::now();
                 let _ = stdin.write_all(&test);
                 let mut buf = [0u8; 5];
                 let rx_count = stdout.read(&mut buf).unwrap();
-                elapsed += start.elapsed().as_nanos();
 
                 if 2 > rx_count {
                     return Ok(TestResult::Fail(String::from(
@@ -155,6 +151,7 @@ impl Generator for G2332 {
                     }
                 }
             }
+            let elapsed = start.elapsed().as_nanos();
             let _ = stdin.write_all("q\n".as_bytes());
             spinner.stop("Tests Complete");
             /* End of test run */
