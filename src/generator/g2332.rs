@@ -1,10 +1,11 @@
 use std::fmt::Display;
 
 use crate::generator::Generator;
-use log::debug;
+use log::error;
 use rand::seq::SliceRandom;
 use rand::{thread_rng, Rng};
-use std::process::Command;
+use std::io::{Read, Write};
+use std::process::{Command, Stdio};
 use std::time::Instant;
 
 use super::TestResult;
@@ -46,7 +47,7 @@ impl G2332 {
         let mut s = String::new();
         for (i, n) in test_case.iter().enumerate() {
             if i == test_case.len() - 1 {
-                s.push_str(&format!("{}", n));
+                s.push_str(&format!("{}\n", n));
             } else {
                 s.push_str(&format!("{},", n));
             }
@@ -102,84 +103,61 @@ impl Generator for G2332 {
         if let TestResult::Success(score) = test {
             let mut score = score;
             let mut spinner = cliclack::spinner();
-            let mut commands: Vec<Command> = Vec::new();
-
-            spinner.start("Creating commands");
-
-            /* prepare all the commands in advance */
-            for test_case in &self.test_cases {
-                let ex = format!("{} {}", score.command, Self::print_test_case(test_case));
-                let mut uut = Command::new("sh");
-                uut.arg("-c").arg(ex);
-
-                commands.push(uut);
-            }
-            let mut base = Command::new("sh");
-            base.arg("-c").arg(&score.command);
-
-            /* Run the test */
-            spinner.stop("All set...");
-            let mut spinner = cliclack::spinner();
+            spinner.start("Preparing tests");
 
             let mut answers: Vec<String> = Vec::new();
-            let mut baseline: u128 = 0;
             let mut elapsed: u128 = 0;
 
-            for uut in commands.iter_mut() {
-                spinner.start(format!(
-                    "Running tests {} of {}",
-                    answers.len(),
-                    self.test_cases.len()
-                ));
-
-                let start = Instant::now();
-                let output = base
-                    .output()
-                    .map_err(|e| format!("Failed to run your program: {}", e))?;
-                baseline += start.elapsed().as_nanos();
-                if !output.status.success() {
-                    return Ok(TestResult::Fail(format!(
-                        "Your program exited with a non-zero status code: {}",
-                        String::from_utf8(output.stderr)?
-                    )));
-                }
-                let out = String::from_utf8(output.stdout)?;
-                if "0" != out.trim() {
-                    return Ok(TestResult::Fail(format!(
-                        "Your program did not produce the correct result: {}",
-                        out
-                    )));
-                }
-
-                let start = Instant::now();
-                let output = uut
-                    .output()
-                    .map_err(|e| format!("Failed to run your program: {}", e))?;
-                elapsed += start.elapsed().as_nanos();
-                if !output.status.success() {
-                    return Ok(TestResult::Fail(format!(
-                        "Your program exited with a non-zero status code: {}",
-                        String::from_utf8(output.stderr)?
-                    )));
-                }
-                let out = String::from_utf8(output.stdout)?;
-                answers.push(out);
+            /* prep the test cases */
+            let mut tests: Vec<Vec<u8>> = Vec::new();
+            for test in &self.test_cases {
+                let case = Self::print_test_case(test).clone().as_bytes().to_vec();
+                tests.push(case);
             }
+
+            /* start the child process */
+            let mut child =
+                Command::new("/home/philip/code_challenges/odds_are/target/release/odds_are")
+                    .stdout(Stdio::piped())
+                    .stdin(Stdio::piped())
+                    .spawn()
+                    .unwrap();
+
+            let mut stdin = child.stdin.take().unwrap();
+            let mut stdout = child.stdout.take().unwrap();
+
+            spinner.stop("Running tests...");
+            /* Run the test */
+            for test in tests {
+                let start = Instant::now();
+                let _ = stdin.write_all(&test);
+                let mut buf = [0u8; 5];
+                let rx_count = stdout.read(&mut buf).unwrap();
+                elapsed += start.elapsed().as_nanos();
+
+                if 2 > rx_count {
+                    return Ok(TestResult::Fail(String::from(
+                        "Your program sent back too few characters. Did you forget the newline?",
+                    )));
+                }
+
+                let buf = String::from_utf8(buf.to_vec())?;
+                let buf = buf.trim_matches(char::from(0)).trim();
+                match buf.parse::<u8>() {
+                    Ok(n) => {
+                        answers.push(n.to_string());
+                    }
+                    Err(e) => {
+                        error!("Error parsing output: {}", buf);
+                        return Ok(TestResult::Fail(format!(
+                            "Your program did not produce the correct result: {e}"
+                        )));
+                    }
+                }
+            }
+            let _ = stdin.write_all("q\n".as_bytes());
             spinner.stop("Tests Complete");
             /* End of test run */
-            debug!(
-                "Elapsed: {}, Baseline: {}",
-                scoreboard_db::NiceTime::new(elapsed as f64),
-                scoreboard_db::NiceTime::new(baseline as f64)
-            );
-            if baseline > elapsed {
-                return Err("Unable to get a good baseline, please try again".into());
-            }
-            elapsed -= baseline;
-            debug!(
-                "Elapsed: {} after baseline",
-                scoreboard_db::NiceTime::new(elapsed as f64)
-            );
 
             let result = if elapsed > u64::MAX as u128 {
                 TestResult::Fail(String::from("Your program is way too slow"))
