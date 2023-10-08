@@ -1,4 +1,5 @@
 use super::adaptive_card::AdaptiveCard;
+use super::publish::PublishType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -16,8 +17,8 @@ pub struct Content {
     content: AdaptiveCard,
 }
 
-impl Message {
-    pub fn new_adaptive_card(card: AdaptiveCard) -> Self {
+impl From<AdaptiveCard> for Message {
+    fn from(card: AdaptiveCard) -> Self {
         Message {
             message_type: "message".to_string(),
             attachments: vec![Content {

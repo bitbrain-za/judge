@@ -79,7 +79,7 @@ impl Publisher {
 
     pub fn send_test_card(&self) {
         let adaptive_card = AdaptiveCard::test_card();
-        let message: Message = Message::new_adaptive_card(adaptive_card);
+        let message: Message = Message::from(adaptive_card);
 
         self.send_message(&message).unwrap();
     }
