@@ -16,3 +16,4 @@
   - Renamed to judge
   - More reuseable
   - Added challenge 2332
+  - Adds config for challenge start and end times

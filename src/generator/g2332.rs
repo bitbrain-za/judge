@@ -9,10 +9,10 @@ use std::time::Instant;
 
 use super::TestResult;
 
-const MIN_SIZE: usize = 500;
-const MAX_SIZE: usize = 1000;
+const MIN_SIZE: usize = 1000;
+const MAX_SIZE: usize = 10_000;
 const TEST_SAMPLES: usize = 100;
-const ATTEMPT_SAMPLES: usize = 10_000;
+const ATTEMPT_SAMPLES: usize = 1_000;
 
 pub struct G2332 {
     pub count: usize,
@@ -114,9 +114,8 @@ impl Generator for G2332 {
 
                 commands.push(uut);
             }
-            let ex = format!("{} 0,1,1", score.command);
             let mut base = Command::new("sh");
-            base.arg("-c").arg(ex);
+            base.arg("-c").arg(&score.command);
 
             /* Run the test */
             spinner.stop("All set...");
