@@ -136,34 +136,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         }
-        config::RunMode::Announce(message) => {
-            match message.as_str() {
-                "release" => {
-                    info!("Announcing release");
+        config::RunMode::Announce(message) => match message.as_str() {
+            "release" => {
+                info!("Announcing release");
 
-                    let release = format!("judge v{} is live\n", env!("CARGO_PKG_VERSION"));
-                    let changes = include_str!("../CHANGELOG.md");
+                let release = format!("judge v{} is live\n", env!("CARGO_PKG_VERSION"));
+                let changes = include_str!("../CHANGELOG.md");
 
-                    let _ = publish::Publisher::new()?.publish(publish::PublishType::Announcement(
-                        (release, changes.to_string()),
-                    ));
-                }
-                "launch" => {
-                    info!("Announcing launch");
-
-                    let launch = "Announcement!".to_string();
-                    let changes =
-                        "New challenge is live. Check in with judge for details".to_string();
-
-                    let _ = publish::Publisher::new()?
-                        .publish(publish::PublishType::Announcement((launch, changes)));
-                }
-                _ => {
-                    error!("Unknown announcement: {}", message);
-                }
+                let _ = publish::Publisher::new()?.publish(publish::PublishType::Announcement((
+                    release,
+                    changes.to_string(),
+                )));
             }
-            todo!()
-        }
+            "launch" => {
+                info!("Announcing launch");
+
+                let launch = "Announcement!".to_string();
+                let changes = "New challenge is live. Check in with judge for details".to_string();
+
+                let _ = publish::Publisher::new()?
+                    .publish(publish::PublishType::Announcement((launch, changes)));
+            }
+            _ => {
+                error!("Unknown announcement: {}", message);
+            }
+        },
     }
     Ok(())
 }

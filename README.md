@@ -14,8 +14,12 @@ It can also let you view the scoreboard in a variety of different ways.
  - libssl-dev
  - [mySql](https://linuxhint.com/installing_mysql_workbench_ubuntu/)
 
-
 ## Usage
+
+### 0. Admin
+ - `--announcement release` To announce a new release
+ - `--announcement launch` To announce when a new challenge is opened
+ - `--version` Prints the version
 
 ### 1. Scoreboard
 
