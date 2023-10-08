@@ -96,6 +96,7 @@ impl Message {
                 )
             }
         };
+        debug!("Card body: {}", body);
 
         let client = reqwest::blocking::Client::new();
         let req = client

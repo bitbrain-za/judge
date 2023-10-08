@@ -81,6 +81,29 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     return Ok(());
                 }
             };
+
+            /* TODO - Remove test teams message */
+            // teams::publish::Publisher::new()?.publish(teams::publish::PublishType::Message(
+            //     "Hello, world!".to_string(),
+            // ))?;
+
+            teams::publish::Publisher::new()?.send_test_card();
+
+            // let dummy = scoreboard_db::Score {
+            //     name: "Dummy".to_string(),
+            //     language: "Dummy".to_string(),
+            //     time_ns: 0.0,
+            //     command: "Dummy".to_string(),
+            //     hash: "1234".to_string(),
+            // };
+            // let _ = teams::card::Message::send_card(&mut db, &dummy, &config.challenge.name);
+
+            // let elem = teams::card_element::CardElement::default();
+            // debug!("Card element: {}", elem);
+
+            std::process::exit(0);
+            /* Done testing */
+
             info!("setting up to run {}", config.command);
             match run::run(&mut db, &config) {
                 Ok(_) => {}
