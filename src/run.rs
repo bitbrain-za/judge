@@ -3,7 +3,9 @@ use crate::generator::{challenges::Challenges, TestResult};
 use crate::settings;
 use crate::teams::publish;
 use log::{debug, error, warn};
-use scoreboard_db::{Db, NiceTime, Score};
+use scoreboard_db::{
+    Builder as FilterBuilder, Db, Filter, NiceTime, Score, ScoreBoard, SortColumn,
+};
 use sha256::try_digest;
 use std::path::Path;
 
@@ -80,11 +82,21 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
                 command = config.command,
                 elapsed = NiceTime::new(score.time_ns)
             );
+
             if config.publish {
+                let scores = db.get_scores(None)?;
+                let filters = FilterBuilder::new()
+                    .add_filter(Filter::UniquePlayers)
+                    .add_filter(Filter::Sort(SortColumn::Time))
+                    .add_filter(Filter::Top(5));
+                let scores = ScoreBoard::new(scores.clone())
+                    .filter(filters.clone())
+                    .scores();
+
                 let _ = publish::Publisher::new()?.publish(publish::PublishType::NewScore((
                     config.challenge.name.clone(),
                     score,
-                    db.get_scores(None)?,
+                    scores,
                 )));
             }
         }
@@ -100,11 +112,19 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
                 victim.name
             );
             if !config.test_mode {
+                let scores = db.get_scores(None)?;
+                let filters = FilterBuilder::new()
+                    .add_filter(Filter::UniquePlayers)
+                    .add_filter(Filter::Sort(SortColumn::Time))
+                    .add_filter(Filter::Top(5));
+                let scores = ScoreBoard::new(scores.clone())
+                    .filter(filters.clone())
+                    .scores();
                 let _ = publish::Publisher::new()?.publish(publish::PublishType::CopyCard {
                     challenge: config.challenge.name.clone(),
                     thief: thief.name,
                     victim: victim.name,
-                    scores: db.get_scores(None)?,
+                    scores,
                 });
             }
         }
