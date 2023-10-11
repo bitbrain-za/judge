@@ -71,10 +71,20 @@ pub struct Settings {
 }
 
 impl Settings {
-    pub fn load(path: &str) -> Result<Self, Box<dyn Error>> {
-        let mut file = File::open(path).unwrap();
+    pub fn load(path: Option<&str>) -> Result<Self, Box<dyn Error>> {
+        let path = match path {
+            Some(path) => path,
+            None => match option_env!("SETTINGS_PATH") {
+                Some(path) => path,
+                None => {
+                    return Err("This program needs to be compiled with the $SETTINGS_PATH env variable set".into());
+                }
+            },
+        };
+
+        let mut file = File::open(path)?;
         let mut contents = String::new();
-        file.read_to_string(&mut contents).unwrap();
+        file.read_to_string(&mut contents)?;
         let mut settings: Settings = serde_json::from_str(&contents)?;
         settings.update_challenges()?;
         Ok(settings)
@@ -88,7 +98,7 @@ impl Settings {
     }
 
     pub fn allowed_to_run(&self, id: &str) -> Result<bool, Box<dyn Error>> {
-        let challenge = self.get_challenge(id)?;
+        let challenge = self.get_challenge(Some(id))?;
         Ok(challenge.get_status() != Status::Closed)
     }
 
@@ -98,16 +108,28 @@ impl Settings {
         language: &str,
         previous: &[Score],
     ) -> Result<bool, Box<dyn Error>> {
-        let challenge = self.get_challenge(id)?;
+        let challenge = self.get_challenge(Some(id))?;
         challenge.gets_a_prize(language, previous)
     }
 
-    fn get_challenge(&self, id: &str) -> Result<&ChallengeConfig, Box<dyn Error>> {
-        for challenge in &self.challenges {
-            if id == challenge.id {
-                return Ok(challenge);
+    fn get_challenge(&self, id: Option<&str>) -> Result<&ChallengeConfig, Box<dyn Error>> {
+        match id {
+            Some(id) => {
+                for challenge in &self.challenges {
+                    if id == challenge.id {
+                        return Ok(challenge);
+                    }
+                }
+            }
+            None => {
+                for challenge in &self.challenges {
+                    if challenge.get_status() == Status::Active {
+                        return Ok(challenge);
+                    }
+                }
             }
         }
+
         Err("Challenge not found".into())
     }
 }

@@ -41,14 +41,7 @@ pub fn run(db: &mut Db, config: &WriteConfig) -> Result<(), Box<dyn std::error::
                 /* Check if a spot prize is awarded */
                 let previous = db.get_scores(None)?;
 
-                let settings_path = match option_env!("SETTINGS_PATH") {
-                    Some(path) => path,
-                    None => return Err(
-                        "This program needs to be compiled with the $SETTINGS_PATH env variable set"
-                            .into(),
-                    ),
-                };
-                let settings = match settings::Settings::load(settings_path) {
+                let settings = match settings::Settings::load(None) {
                     Ok(settings) => settings,
                     Err(e) => {
                         error!("Failed to load settings: {}", e);
