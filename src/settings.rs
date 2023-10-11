@@ -5,7 +5,7 @@ use std::{error::Error, fs::File, io::Read};
 
 #[derive(Deserialize, Debug)]
 pub struct ChallengeConfig {
-    id: String,
+    pub id: String,
     start: String,
     end: String,
     language_prize: String,
@@ -112,7 +112,7 @@ impl Settings {
         challenge.gets_a_prize(language, previous)
     }
 
-    fn get_challenge(&self, id: Option<&str>) -> Result<&ChallengeConfig, Box<dyn Error>> {
+    pub fn get_challenge(&self, id: Option<&str>) -> Result<&ChallengeConfig, Box<dyn Error>> {
         match id {
             Some(id) => {
                 for challenge in &self.challenges {

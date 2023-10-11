@@ -6,6 +6,8 @@ use log::{debug, error};
 use scoreboard_db::Builder as FilterBuilder;
 use scoreboard_db::{Filter, SortColumn};
 
+use crate::settings;
+
 #[derive(Debug)]
 pub enum RunMode {
     Update(WriteConfig),
@@ -103,8 +105,15 @@ pub struct ReadConfig {
 
 impl Default for ReadConfig {
     fn default() -> Self {
+        let settings = settings::Settings::load(None).expect("Error loading settings");
+        let active_challenge_settings = settings
+            .get_challenge(None)
+            .expect("No active challenge found");
+
         let challenges = Challenges::new();
-        let challenge = challenges.get_challenge("2331").expect("FIX ME!");
+        let challenge = challenges
+            .get_challenge(&active_challenge_settings.id)
+            .expect("FIX ME!");
         ReadConfig {
             challenge: challenge.clone(),
             filters: FilterBuilder::new(),
@@ -114,8 +123,13 @@ impl Default for ReadConfig {
 
 impl ReadConfig {
     fn from_args(args: &[String]) -> Result<Self, Box<dyn std::error::Error>> {
+        let settings = settings::Settings::load(None).expect("Error loading settings");
+        let active_challenge_settings = settings
+            .get_challenge(None)
+            .expect("No active challenge found");
+
         let challenges = Challenges::new();
-        let mut challenge = challenges.get_challenge("2331").expect("FIX ME!");
+        let mut challenge = challenges.get_challenge(&active_challenge_settings.id);
         let mut filters = FilterBuilder::new();
 
         for (i, arg) in args.iter().enumerate() {
@@ -135,7 +149,7 @@ impl ReadConfig {
                         .ok_or("-C must provide a string")?
                         .to_string();
                     challenge = match challenges.get_challenge(&c) {
-                        Some(c) => c,
+                        Some(c) => Some(c),
                         None => {
                             error!("Challenge {} not found", c);
                             println!("Available challenges:");
@@ -196,7 +210,13 @@ impl ReadConfig {
         }
 
         let config = ReadConfig {
-            challenge: challenge.clone(),
+            challenge: match challenge {
+                Some(c) => c.clone(),
+                None => {
+                    error!("No challenge provided");
+                    std::process::exit(1);
+                }
+            },
             filters,
         };
 
@@ -237,6 +257,7 @@ impl WriteConfig {
         let mut publish = true;
         let mut test_mode = false;
         let challenges = Challenges::new();
+        //TODO get active challenge
         let mut challenge = challenges.get_challenge("2331").expect("FIX ME!");
         let mut language: Option<String> = None;
 
