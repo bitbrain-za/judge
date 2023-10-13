@@ -256,10 +256,15 @@ impl WriteConfig {
         let mut command: Option<String> = None;
         let mut publish = true;
         let mut test_mode = false;
-        let challenges = Challenges::new();
-        //TODO get active challenge
-        let mut challenge = challenges.get_challenge("2331").expect("FIX ME!");
         let mut language: Option<String> = None;
+
+        let settings = settings::Settings::load(None).expect("Error loading settings");
+        let active_challenge_settings = settings
+            .get_challenge(None)
+            .expect("No active challenge found");
+
+        let challenges = Challenges::new();
+        let mut challenge = challenges.get_challenge(&active_challenge_settings.id);
 
         for (i, arg) in args.iter().enumerate() {
             match arg.as_str() {
@@ -269,7 +274,7 @@ impl WriteConfig {
                         .ok_or("-C must provide a string")?
                         .to_string();
                     challenge = match challenges.get_challenge(&c) {
-                        Some(c) => c,
+                        Some(c) => Some(c),
                         None => {
                             error!("Challenge {} not found", c);
                             println!("Available challenges:");
@@ -330,8 +335,15 @@ impl WriteConfig {
             command: command.ok_or("-c must be provided")?,
             publish,
             test_mode,
-            challenge: challenge.clone(),
             language: language.ok_or("-L must be provided")?,
+
+            challenge: match challenge {
+                Some(c) => c.clone(),
+                None => {
+                    error!("No challenge provided");
+                    std::process::exit(1);
+                }
+            },
         };
 
         debug!("Write Config: {:?}", config);
