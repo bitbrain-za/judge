@@ -113,12 +113,11 @@ impl Generator for G2332 {
             }
 
             /* start the child process */
-            let mut child =
-                Command::new("/home/philip/code_challenges/odds_are/target/release/odds_are")
-                    .stdout(Stdio::piped())
-                    .stdin(Stdio::piped())
-                    .spawn()
-                    .unwrap();
+            let mut child = Command::new(&score.command)
+                .stdout(Stdio::piped())
+                .stdin(Stdio::piped())
+                .spawn()
+                .unwrap();
 
             let mut stdin = child.stdin.take().unwrap();
             let mut stdout = child.stdout.take().unwrap();
