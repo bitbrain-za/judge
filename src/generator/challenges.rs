@@ -1,4 +1,4 @@
-use super::{Generator, G2331, G2332};
+use super::{Generator, G2331, G2332, G2333};
 use log::debug;
 use std::fmt::Display;
 
@@ -36,8 +36,15 @@ impl Challenges {
             table: String::from("23_3_2"),
         };
 
+        let c2333 = Challenge {
+            name: String::from("How big?"),
+            command: String::from("2333"),
+            doc_path: String::from("2333.md"),
+            table: String::from("23_3_3"),
+        };
+
         Self {
-            challenges: vec![c2331, c2332],
+            challenges: vec![c2331, c2332, c2333],
         }
     }
 
@@ -50,6 +57,7 @@ impl Challenges {
         match challenge {
             "2331" => Some(Box::new(G2331::new(test))),
             "2332" => Some(Box::new(G2332::new(test))),
+            "2333" => Some(Box::new(G2333::new(test))),
             _ => None,
         }
     }
