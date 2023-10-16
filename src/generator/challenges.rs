@@ -6,13 +6,13 @@ use std::fmt::Display;
 pub struct Challenge {
     pub name: String,
     pub command: String,
-    pub doc_path: String,
     pub table: String,
+    doc: String,
 }
 
 impl Challenge {
     pub fn print(&self) {
-        termimad::print_text(include_str!("2331.md"));
+        termimad::print_text(&self.doc);
     }
 }
 
@@ -25,22 +25,22 @@ impl Challenges {
         let c2331 = Challenge {
             name: String::from("Find the odd one out"),
             command: String::from("2331"),
-            doc_path: String::from("2331.md"),
             table: String::from("23_3_1"),
+            doc: include_str!("2331.md").to_string(),
         };
 
         let c2332 = Challenge {
             name: String::from("Find the odd one out two"),
             command: String::from("2332"),
-            doc_path: String::from("2332.md"),
             table: String::from("23_3_2"),
+            doc: include_str!("2332.md").to_string(),
         };
 
         let c2333 = Challenge {
             name: String::from("How big?"),
             command: String::from("2333"),
-            doc_path: String::from("2333.md"),
             table: String::from("23_3_3"),
+            doc: include_str!("2333.md").to_string(),
         };
 
         Self {
