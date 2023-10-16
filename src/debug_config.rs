@@ -68,7 +68,8 @@ pub fn init_debug(args: &[String]) {
                 .expect("Failed to initialize logger");
         }
         DebugOut::Syslog => {
-            JournalLog::default()
+            JournalLog::new()
+                .expect("Failed to initialize logger")
                 .install()
                 .expect("Failed to initialize logger");
             log::set_max_level(level);
