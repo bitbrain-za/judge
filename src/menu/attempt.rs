@@ -40,8 +40,8 @@ pub fn run(allow_quiet_mode: Option<bool>) -> Result<RunMode, Box<dyn std::error
     let publish: bool = if allow_quiet_mode {
         if !test_mode {
             select("Would you like to publish this?")
-                .item(false, "Yes!", "Good for you")
-                .item(true, "No", "That's a bit dissapointing")
+                .item(true, "Yes!", "Good for you")
+                .item(false, "No", "That's a bit dissapointing")
                 .interact()?
         } else {
             false
