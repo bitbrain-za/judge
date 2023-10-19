@@ -8,6 +8,7 @@ mod read;
 mod run;
 mod settings;
 mod teams;
+use envcrypt::option_envc;
 use teams::publish;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -15,12 +16,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     debug_config::init_debug(&args);
 
     info!("Firing up judge v{}", env!("CARGO_PKG_VERSION"));
-    let db_pass = match option_env!("DB_PASSWORD") {
+    let db_pass = match option_envc!("DB_PASSWORD") {
         Some(pass) => pass,
         None => {
             return Err(
                 "This program needs to be compiled with the $DB_PASSWORD env variable set".into(),
-            )
+            );
         }
     };
 

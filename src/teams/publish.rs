@@ -1,4 +1,5 @@
 use super::teams_message::Message;
+use envcrypt::option_envc;
 use log::debug;
 use scoreboard_db::Score;
 use serde_json;
@@ -23,7 +24,7 @@ pub struct Publisher {
 
 impl Publisher {
     pub fn new() -> Result<Self, Box<dyn Error>> {
-        let webhook = match option_env!("WEBHOOK") {
+        let webhook = match option_envc!("WEBHOOK") {
             Some(pass) => pass,
             None => {
                 return Err(

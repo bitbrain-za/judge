@@ -1,5 +1,11 @@
 ## Changelog
 
+## 2.2 
+  - Adds the next challenge
+  - Bugfix - wasn't handling scripts well
+  - Bugfix - inverted logic
+  - Encrypt sensitive strings
+
 ## 2.0
   - Renamed to judge
   - More reuseable
