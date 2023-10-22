@@ -1,4 +1,5 @@
 /target
 /scripts
 /systemd
+/Cargo.lock
 config.json
