@@ -1,6 +1,6 @@
 [package]
 name = "judge"
-version = "2.2.6"
+version = "2.2.7"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -21,4 +21,4 @@ termimad = "0.25.2"
 cliclack = "0.1.8"
 envcrypt = "0.5.0"
 
-scoreboard_db = { path = "../scoreboard_db", features = ["database"]}
+scoreboard_db = { version = "0.2.1", features = ["database"]}

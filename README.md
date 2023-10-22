@@ -1,3 +1,6 @@
+[![dependency status](https://deps.rs/repo/github/bitbrain-za/judge/status.svg)](https://deps.rs/repo/github/bitbrain-za/judge)
+[![Build Status](https://github.com/bitbrain-za/judge/workflows/CI/badge.svg)](https://github.com/bitbrain-za/judge/actions?workflow=CI)
+
 # Welcome to the Judge!
 
 This purpose of this application is to mediate your submissions to the code challenge.
