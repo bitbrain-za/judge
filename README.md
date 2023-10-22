@@ -1,3 +1,4 @@
+![MIT license](https://img.shields.io/github/license/bitbrain-za/judge)
 [![dependency status](https://deps.rs/repo/github/bitbrain-za/judge/status.svg)](https://deps.rs/repo/github/bitbrain-za/judge)
 [![Build Status](https://github.com/bitbrain-za/judge/workflows/CI/badge.svg)](https://github.com/bitbrain-za/judge/actions?workflow=CI)
 
