@@ -2,6 +2,12 @@
 name = "judge"
 version = "2.2.7"
 edition = "2021"
+authors = ["Philip Barlow"]
+description = "Tool for an in house code challenge server"
+license = "MIT"
+repository = "https://github.com/bitbrain-za/judge"
+homepage = "https://github.com/bitbrain-za/judge"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
