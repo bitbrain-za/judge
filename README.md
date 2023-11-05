@@ -45,6 +45,7 @@ It can also let you view the scoreboard in a variety of different ways.
 - `-L <language>` REQUIRED The language you wrote your binary in
 - `-t` OPTIONAL Test-mode - Results will not be saved to the DB
 - `-q` OPTIONAL Quiet Mode - No messages published to the teams channel
+- `-C <challenge>` REQUIRED - The challenge you're submitting for
 
 To wipe the DB:
 - `-w` Wipes the DB (requires root)
