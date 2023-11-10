@@ -77,8 +77,10 @@ impl Generator for G2331 {
     }
 
     fn check_answer(&self, data: &str) -> Result<bool, Box<dyn std::error::Error>> {
-        let result: Vec<i32> = serde_json::from_str(data).expect("JSON was not well-formatted");
-        Ok(self.answer == result)
+        match serde_json::from_str::<Vec<i32>>(data) {
+            Err(_) => Err("Your binary output was not a valid JSON array".into()),
+            Ok(result) => Ok(self.answer == result),
+        }
     }
 
     fn setup(&mut self) -> Result<(), Box<dyn std::error::Error>> {

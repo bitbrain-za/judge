@@ -108,7 +108,7 @@ impl Default for ReadConfig {
         let settings = settings::Settings::load(None).expect("Error loading settings");
         let active_challenge_settings = settings
             .get_challenge(None)
-            .expect("No active challenge found");
+            .expect("No active challenge found: Please contact the admin");
 
         let challenges = Challenges::new();
         let challenge = challenges
