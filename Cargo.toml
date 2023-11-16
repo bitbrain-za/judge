@@ -1,6 +1,6 @@
 [package]
 name = "judge"
-version = "2.2.8"
+version = "2.2.9"
 edition = "2021"
 authors = ["Philip Barlow"]
 description = "Tool for an in house code challenge server"
