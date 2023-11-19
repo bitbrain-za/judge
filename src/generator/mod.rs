@@ -4,6 +4,8 @@ mod g2332;
 pub use g2332::G2332;
 mod g2333;
 pub use g2333::G2333;
+mod g2334;
+pub use g2334::G2334;
 
 pub mod challenges;
 mod test_result;

@@ -1,6 +1,6 @@
 [package]
 name = "judge"
-version = "2.2.8"
+version = "2.2.9"
 edition = "2021"
 authors = ["Philip Barlow"]
 description = "Tool for an in house code challenge server"
@@ -21,7 +21,7 @@ reqwest = { version = "0.11", features = ["blocking", "json"] }
 chrono = "0.4.31"
 whoami = "1.4.1"
 sha256 = "1.4.0"
-termimad = "0.25.2"
+termimad = "0.26.1"
 cliclack = "0.1.8"
 envcrypt = "0.5.0"
 scoreboard_db = { version = "0.2.1", features = ["database"] }
