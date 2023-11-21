@@ -1,4 +1,4 @@
-use super::{Generator, G2331, G2332, G2333, G2334, G2411};
+use super::{Generator, G2331, G2332, G2333, G2334, G2411, G2412};
 use log::debug;
 use std::fmt::Display;
 
@@ -57,8 +57,15 @@ impl Challenges {
             doc: include_str!("2411.md").to_string(),
         };
 
+        let c2412 = Challenge {
+            name: String::from("Input validation"),
+            command: String::from("2412"),
+            table: String::from("24_1_2"),
+            doc: include_str!("2412.md").to_string(),
+        };
+
         Self {
-            challenges: vec![c2331, c2332, c2333, c2334, c2411],
+            challenges: vec![c2331, c2332, c2333, c2334, c2411, c2412],
         }
     }
 
@@ -74,6 +81,7 @@ impl Challenges {
             "2333" => Some(Box::new(G2333::new(test))),
             "2334" => Some(Box::new(G2334::new(test))),
             "2411" => Some(Box::new(G2411::new(test))),
+            "2412" => Some(Box::new(G2412::new(test))),
             _ => None,
         }
     }

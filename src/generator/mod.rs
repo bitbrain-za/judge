@@ -8,6 +8,8 @@ mod g2334;
 pub use g2334::G2334;
 mod g2411;
 pub use g2411::G2411;
+mod g2412;
+pub use g2412::G2412;
 
 pub mod challenges;
 mod test_result;

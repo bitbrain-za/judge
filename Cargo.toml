@@ -1,6 +1,6 @@
 [package]
 name = "judge"
-version = "2.3.0"
+version = "2.3.1"
 edition = "2021"
 authors = ["Philip Barlow"]
 description = "Tool for an in house code challenge server"
@@ -26,3 +26,4 @@ cliclack = "0.1.8"
 envcrypt = "0.5.0"
 scoreboard_db = { version = "0.2.1", features = ["database"] }
 primes = "0.3.0"
+prime_factorization = "1.0.4"
