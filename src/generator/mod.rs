@@ -12,6 +12,8 @@ mod g2412;
 pub use g2412::G2412;
 mod g2413;
 pub use g2413::G2413;
+mod g2414;
+pub use g2414::G2414;
 
 pub mod challenges;
 mod test_result;
