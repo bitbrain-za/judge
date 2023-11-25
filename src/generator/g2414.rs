@@ -1,8 +1,9 @@
 use std::fmt::Display;
 
 use crate::generator::Generator;
+use cipher_crypt::{Caesar, Cipher};
 use log::{debug, error};
-use rand::seq::SliceRandom;
+use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use std::io::{Read, Write};
 use std::process::{Command, Stdio};
@@ -14,8 +15,8 @@ const TEST_SIZE: usize = 1_000;
 const TEST_SAMPLES: usize = 10;
 const ATTEMPT_SAMPLES: usize = 100_000;
 
-type TestCase = Vec<u8>;
-type Answer = usize;
+type TestCase = (String, usize);
+type Answer = String;
 
 pub struct G2414 {
     pub count: usize,
@@ -46,15 +47,8 @@ impl G2414 {
     }
 
     fn print_test_case(test_case: &TestCase) -> String {
-        let mut s = String::new();
-        for (i, n) in test_case.iter().enumerate() {
-            if i == test_case.len() - 1 {
-                s.push_str(&format!("{}\n", n));
-            } else {
-                s.push_str(&format!("{},", n));
-            }
-        }
-        s
+        let (s, n) = test_case;
+        format!("{}\n{}\n", s, n)
     }
 }
 
@@ -66,19 +60,20 @@ impl Generator for G2414 {
     fn regenerate(&mut self) {
         let mut rng = thread_rng();
         self.test_cases = Vec::new();
+        self.answer = Vec::new();
 
         while self.test_cases.len() < self.count {
-            let mut test_case: TestCase = Vec::new();
-            let mut random;
-            for _ in 0..TEST_SIZE {
-                random = rng.gen_range(0..255);
-                test_case.push(random);
-            }
+            let test_case: String = std::iter::repeat(())
+                .map(|()| rng.sample(Alphanumeric))
+                .map(char::from)
+                .take(TEST_SIZE)
+                .collect();
+            let shift = rng.gen_range(0..255);
+            let test_case = (test_case, shift);
+            let cipher = Caesar::new(test_case.1 % 26);
+            let cipher_text = cipher.encrypt(&test_case.0).unwrap();
 
-            //TODO!
-
-            test_case.shuffle(&mut thread_rng());
-
+            self.answer.push(cipher_text);
             self.test_cases.push(test_case);
         }
         debug!("answer: {:?}", self.answer);
@@ -116,7 +111,7 @@ impl Generator for G2414 {
             let mut answers: Vec<String> = Vec::new();
 
             /* prep the test cases */
-            let mut tests: Vec<TestCase> = Vec::new();
+            let mut tests: Vec<Vec<u8>> = Vec::new();
             for test in &self.test_cases {
                 let case = Self::print_test_case(test).clone().as_bytes().to_vec();
                 tests.push(case);
@@ -190,5 +185,38 @@ impl Generator for G2414 {
         } else {
             Err("Please start with a success variant".into())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_g2414() {
+        let c1 = ("Super secret message", 10);
+        let a1 = "Cezob combod wocckqo";
+        let s2 = ("Can you read this", 1);
+        let a2 = "Dbo zpv sfbe uijt";
+        let s3 = ("NO", 5);
+        let a3 = "ST";
+        let s4 = ("Edge case", 40);
+        let a4 = "Srus qogs";
+
+        let cipher = Caesar::new(c1.1);
+        let cipher_text = cipher.encrypt(c1.0).unwrap();
+        assert_eq!(cipher_text, a1);
+
+        let cipher = Caesar::new(s2.1);
+        let cipher_text = cipher.encrypt(s2.0).unwrap();
+        assert_eq!(cipher_text, a2);
+
+        let cipher = Caesar::new(s3.1);
+        let cipher_text = cipher.encrypt(s3.0).unwrap();
+        assert_eq!(cipher_text, a3);
+
+        let cipher = Caesar::new(s4.1 % 26);
+        let cipher_text = cipher.encrypt(s4.0).unwrap();
+        assert_eq!(cipher_text, a4);
     }
 }
