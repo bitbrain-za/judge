@@ -37,6 +37,30 @@ impl RunMode {
             std::process::exit(0);
         }
 
+        if args.contains(&String::from("-g")) || args.contains(&String::from("--get")) {
+            let challenges = Challenges::new();
+
+            let index = args.iter().position(|r| r == "-g").unwrap();
+            let c = args.get(index + 1);
+            if let Some(c) = c {
+                for challenge in challenges.challenges.iter() {
+                    if challenge.command == *c {
+                        let json =
+                            serde_json::to_string(&challenge).expect("Error getting challenges");
+                        print!("{}", json);
+                        std::process::exit(0);
+                    }
+                }
+                println!("Unknown challenge: {}", c);
+                std::process::exit(0);
+            }
+
+            let open_challenges = challenges.get_open_challenges();
+            let json = serde_json::to_string(&open_challenges).expect("Error getting challenges");
+            print!("{}", json);
+            std::process::exit(0);
+        }
+
         if args.contains(&String::from("--version")) {
             println!("judge {}", env!("CARGO_PKG_VERSION"));
             std::process::exit(0);

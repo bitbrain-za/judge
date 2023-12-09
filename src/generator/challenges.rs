@@ -1,8 +1,9 @@
 use super::{Generator, G2331, G2332, G2333, G2334, G2411, G2412, G2413, G2414};
+use crate::settings;
 use log::debug;
 use std::fmt::Display;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Challenge {
     pub name: String,
     pub command: String,
@@ -81,7 +82,62 @@ impl Challenges {
     }
 
     pub fn get_challenge(&self, challenge: &str) -> Option<&Challenge> {
-        self.challenges.iter().find(|c| c.command == challenge)
+        let challenge = match self.challenges.iter().find(|c| c.command == challenge) {
+            Some(c) => c,
+            None => {
+                log::error!("No such challenge: {}", challenge);
+                return None;
+            }
+        };
+
+        let settings = match settings::Settings::load(None) {
+            Ok(settings) => settings,
+            Err(e) => {
+                log::error!("Failed to load settings: {}", e);
+                return None;
+            }
+        };
+
+        match settings.allowed_to_run(&challenge.command) {
+            Ok(b) => {
+                if b {
+                    Some(challenge)
+                } else {
+                    None
+                }
+            }
+            Err(e) => {
+                log::error!("Failed to check if challenge is allowed: {}", e);
+                None
+            }
+        }
+    }
+
+    pub fn get_open_challenges(&self) -> Vec<&Challenge> {
+        let settings = match settings::Settings::load(None) {
+            Ok(settings) => settings,
+            Err(e) => {
+                log::error!("Failed to load settings: {}", e);
+                return vec![];
+            }
+        };
+
+        let mut open_challenges = vec![];
+
+        for challenge in &self.challenges {
+            match settings.allowed_to_run(&challenge.command) {
+                Ok(b) => {
+                    if b {
+                        open_challenges.push(challenge);
+                    }
+                }
+                Err(e) => {
+                    log::error!("Failed to check if challenge is allowed: {}", e);
+                }
+            }
+        }
+
+        open_challenges
     }
 
     pub fn make_generator(&self, challenge: &str, test: bool) -> Option<Box<dyn Generator>> {
