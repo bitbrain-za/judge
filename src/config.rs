@@ -308,10 +308,6 @@ impl WriteConfig {
                     };
                 }
                 "-n" => {
-                    let user = whoami::username();
-                    if user != "root" {
-                        return Err("-n has been deprecated. Do not use anymore.".into());
-                    }
                     name = Some(
                         args.get(i + 1)
                             .ok_or("-n must provide a string")?

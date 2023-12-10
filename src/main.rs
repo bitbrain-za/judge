@@ -36,13 +36,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = match config::RunMode::from_args(&args) {
         Ok(config) => config,
-        Err(_) => match menu::Menu::run(None) {
-            Ok(config) => config,
-            Err(e) => {
-                error!("Failed to establish run mode: {}", e);
-                return Ok(());
+        Err(e) => {
+            log::debug!("Failed to establish run mode: {}", e);
+            match menu::Menu::run(None) {
+                Ok(config) => config,
+                Err(e) => {
+                    error!("Failed to establish run mode: {}", e);
+                    return Ok(());
+                }
             }
-        },
+        }
     };
     debug!("Config: {:?}", config);
 
