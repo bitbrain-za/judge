@@ -121,7 +121,14 @@ impl Generator for G2333 {
             }
 
             /* start the child process */
-            let mut child = Command::new(&score.command)
+            let mut child = if score.command.split(' ').collect::<Vec<&str>>().len() > 1 {
+                let mut child = Command::new("sh");
+                child.arg("-c").arg(&score.command);
+                child
+            } else {
+                Command::new(&score.command)
+            };
+            let mut child = child
                 .stdout(Stdio::piped())
                 .stdin(Stdio::piped())
                 .spawn()
